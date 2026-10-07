@@ -8,7 +8,8 @@ from app.sandbox.patcher import PatchGenerator
 from app.agent.task_contract import TaskContractAgent
 from app.agent.file_locator import FileLocatorAgent
 from app.agent.coder import CoderAgent
-from app.agent.validator import BlindValidator
+from app.agent.validator import BlindValidator, ValidationResult
+from app.agent.hallucination_checker import HallucinationChecker
 from app.llm.base import LLMProvider
 from app.core.storage import save_artifact
 
@@ -23,6 +24,7 @@ class MasterOrchestrator:
         self.contract_agent = TaskContractAgent(self.llm)
         self.locator_agent = FileLocatorAgent(self.llm)
         self.coder_agent = CoderAgent(self.llm)
+        self.hallucination_checker = HallucinationChecker(self.llm)
         self.validator = BlindValidator(self.llm)
         self.patcher = PatchGenerator()
 
@@ -82,6 +84,18 @@ class MasterOrchestrator:
                 save_artifact(run_id, f"post_test_summary_attempt_{attempt}", new_summary)
                 
                 patch_content = self.patcher.generate_and_save_patch(run_id, modifications)
+                
+                hallucination = await self.hallucination_checker.check(patch_content, str(repo_map.model_dump()))
+                save_artifact(run_id, f"hallucination_attempt_{attempt}", hallucination)
+                
+                if hallucination.status == "YES":
+                    validation = ValidationResult(
+                        passed=False,
+                        reason="Hallucination detected: " + "; ".join(hallucination.evidence),
+                        regressions=[]
+                    )
+                    save_artifact(run_id, f"validation_attempt_{attempt}", validation)
+                    continue
                 
                 validation = await self.validator.validate(contract, baseline_summary, new_summary, patch_content)
                 save_artifact(run_id, f"validation_attempt_{attempt}", validation)

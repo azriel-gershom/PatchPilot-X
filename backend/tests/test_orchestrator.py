@@ -41,6 +41,9 @@ async def test_orchestrator_success(monkeypatch, tmp_path):
     orch.validator = AsyncMock()
     orch.validator.validate.return_value = ValidationResult(passed=True, reason="ok")
     
+    orch.hallucination_checker = AsyncMock()
+    orch.hallucination_checker.check.return_value = MagicMock(status="NO", evidence=[])
+    
     monkeypatch.setattr("app.agent.orchestrator.save_artifact", MagicMock())
     monkeypatch.setattr("app.sandbox.patcher.PatchGenerator.generate_and_save_patch", MagicMock(return_value="diff"))
     
