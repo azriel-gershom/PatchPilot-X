@@ -20,6 +20,7 @@ class CoderAgent:
         file_path: str,
         original_content: str,
         feedback: str = None,
+        previous_modifications: list[dict] = None,
     ) -> str:
         system_prompt = (
             "You are a meticulous Software Engineer. "
@@ -36,6 +37,11 @@ class CoderAgent:
             f"File Path: {file_path}\n"
             f"Original Content:\n```\n{original_content}\n```\n"
         )
+
+        if previous_modifications:
+            prompt += "\nPreviously modified files in this task:\n"
+            for mod in previous_modifications:
+                prompt += f"- {mod['file_path']}:\n```\n{mod['modified']}\n```\n"
 
         if feedback:
             prompt += f"\nPREVIOUS ATTEMPT FAILED WITH FEEDBACK:\n{feedback}\nPlease fix the issues and try again.\n"

@@ -77,7 +77,11 @@ class MasterOrchestrator:
                 for rel_path in files_to_modify:
                     orig = original_contents[rel_path]
                     new_content = await self.coder_agent.modify_file(
-                        contract, rel_path, orig, feedback=feedback
+                        contract,
+                        rel_path,
+                        orig,
+                        feedback=feedback,
+                        previous_modifications=modifications,
                     )
 
                     full_path = os.path.join(workspace_path, rel_path)
