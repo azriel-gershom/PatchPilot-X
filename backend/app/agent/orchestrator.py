@@ -10,6 +10,7 @@ from app.agent.file_locator import FileLocatorAgent
 from app.agent.coder import CoderAgent
 from app.agent.validator import BlindValidator, ValidationResult
 from app.agent.hallucination_checker import HallucinationChecker
+from app.agent.explainer import ExplainerAgent
 from app.llm.base import LLMProvider
 from app.core.storage import save_artifact
 
@@ -25,6 +26,7 @@ class MasterOrchestrator:
         self.locator_agent = FileLocatorAgent(self.llm)
         self.coder_agent = CoderAgent(self.llm)
         self.hallucination_checker = HallucinationChecker(self.llm)
+        self.explainer = ExplainerAgent(self.llm)
         self.validator = BlindValidator(self.llm)
         self.patcher = PatchGenerator()
 
@@ -101,6 +103,13 @@ class MasterOrchestrator:
                 save_artifact(run_id, f"validation_attempt_{attempt}", validation)
                 
                 if validation.passed:
+                    explanation = await self.explainer.explain(contract, patch_content, validation)
+                    from app.core.storage import BASE_DIR
+                    expl_dir = os.path.join(BASE_DIR, run_id)
+                    os.makedirs(expl_dir, exist_ok=True)
+                    expl_path = os.path.join(expl_dir, "explanation.md")
+                    with open(expl_path, "w", encoding="utf-8") as f:
+                        f.write(explanation)
                     break
             
             save_artifact(run_id, "validation", validation)
