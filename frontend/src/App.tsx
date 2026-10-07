@@ -12,6 +12,7 @@ import {
 import AgentTimeline from './components/timeline/AgentTimeline';
 import DiffViewer from './components/diff/DiffViewer';
 import TestResults from './components/tests/TestResults';
+import VerificationArena from './components/verification/VerificationArena';
 import './index.css';
 
 interface RunStatus {
@@ -26,7 +27,7 @@ export default function App() {
   const [requestText, setRequestText] = useState('Fix the divide by zero bug in calculator.py');
   const [isSyncing, setIsSyncing] = useState(false);
   const [activeRun, setActiveRun] = useState<RunStatus | null>(null);
-  const [activeTab, setActiveTab] = useState<'timeline' | 'diff' | 'tests'>('timeline');
+  const [activeTab, setActiveTab] = useState<'arena' | 'timeline' | 'diff' | 'tests'>('arena');
 
   const handleSync = async () => {
     setIsSyncing(true);
@@ -44,7 +45,7 @@ export default function App() {
 
   const handleRunAgent = async () => {
     setActiveRun(null); // Reset active run on new start
-    setActiveTab('timeline'); // Switch back to timeline
+    setActiveTab('arena'); // Switch back to arena
     try {
       const res = await fetch('/api/agent/run', {
         method: 'POST',
@@ -141,6 +142,13 @@ export default function App() {
             <div className="flex justify-between items-center mb-6 border-b border-white/5 pb-4">
               <div className="flex space-x-6">
                 <button 
+                  onClick={() => setActiveTab('arena')}
+                  className={`flex items-center gap-2 font-semibold pb-2 border-b-2 transition-colors ${activeTab === 'arena' ? 'text-amber-400 border-amber-400' : 'text-slate-400 border-transparent hover:text-slate-200'}`}
+                >
+                  <ShieldCheck className="w-5 h-5" />
+                  Arena
+                </button>
+                <button 
                   onClick={() => setActiveTab('timeline')}
                   className={`flex items-center gap-2 font-semibold pb-2 border-b-2 transition-colors ${activeTab === 'timeline' ? 'text-purple-400 border-purple-400' : 'text-slate-400 border-transparent hover:text-slate-200'}`}
                 >
@@ -171,6 +179,7 @@ export default function App() {
             </div>
             
             <div className="flex-1 overflow-y-auto relative p-2">
+              {activeTab === 'arena' && <VerificationArena runId={activeRun ? activeRun.run_id : null} />}
               {activeTab === 'timeline' && <AgentTimeline runId={activeRun ? activeRun.run_id : null} isActive={!!activeRun} />}
               {activeTab === 'diff' && <DiffViewer runId={activeRun ? activeRun.run_id : null} />}
               {activeTab === 'tests' && <TestResults runId={activeRun ? activeRun.run_id : null} />}
