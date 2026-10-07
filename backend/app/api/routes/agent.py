@@ -145,4 +145,37 @@ async def get_run_events(run_id: str):
     # Sort events by timestamp
     events.sort(key=lambda x: x["timestamp"])
 
-    return {"events": events}
+@router.get("/runs/{run_id}/evidence")
+async def get_run_evidence(run_id: str):
+    from app.core.storage import load_artifact
+    
+    baseline = load_artifact(run_id, "baseline")
+    
+    # We find the latest post_test_summary and validation
+    post_test = None
+    validation = None
+    hallucination = None
+    
+    for i in range(5):
+        pt = load_artifact(run_id, f"post_test_summary_attempt_{i}")
+        if pt:
+            post_test = pt
+        val = load_artifact(run_id, f"validation_attempt_{i}")
+        if val:
+            validation = val
+        hal = load_artifact(run_id, f"hallucination_attempt_{i}")
+        if hal:
+            hallucination = hal
+            
+    # Also load the final validation if available
+    final_val = load_artifact(run_id, "validation")
+    if final_val:
+        validation = final_val
+
+    return {
+        "baseline": baseline,
+        "targeted": post_test,  # We treat post test as targeted + regression
+        "regression": post_test,
+        "validation": validation,
+        "hallucination": hallucination
+    }

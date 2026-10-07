@@ -5,9 +5,13 @@ import {
   Play, 
   RefreshCw,
   GitBranch,
-  ListOrdered
+  ListOrdered,
+  FileCode,
+  Beaker
 } from 'lucide-react';
 import AgentTimeline from './components/timeline/AgentTimeline';
+import DiffViewer from './components/diff/DiffViewer';
+import TestResults from './components/tests/TestResults';
 import './index.css';
 
 interface RunStatus {
@@ -22,6 +26,7 @@ export default function App() {
   const [requestText, setRequestText] = useState('Fix the divide by zero bug in calculator.py');
   const [isSyncing, setIsSyncing] = useState(false);
   const [activeRun, setActiveRun] = useState<RunStatus | null>(null);
+  const [activeTab, setActiveTab] = useState<'timeline' | 'diff' | 'tests'>('timeline');
 
   const handleSync = async () => {
     setIsSyncing(true);
@@ -39,6 +44,7 @@ export default function App() {
 
   const handleRunAgent = async () => {
     setActiveRun(null); // Reset active run on new start
+    setActiveTab('timeline'); // Switch back to timeline
     try {
       const res = await fetch('/api/agent/run', {
         method: 'POST',
@@ -47,12 +53,10 @@ export default function App() {
       });
       
       const data = await res.json();
-      setActiveRun(data); // this gives us the run_id to pass to Timeline
+      setActiveRun(data); 
     } catch (err) {
       console.error(err);
     }
-    // We let the timeline polling check when it's done. But we don't have a callback easily unless we poll here too.
-    // Actually, the user can just watch the timeline!
   };
 
   return (
@@ -74,7 +78,7 @@ export default function App() {
       <main className="max-w-7xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
         
         {/* Left Column: Controls */}
-        <div className="lg:col-span-5 flex flex-col gap-6">
+        <div className="lg:col-span-4 flex flex-col gap-6">
           <div className="glass-panel rounded-2xl p-6">
             <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
               <GitBranch className="w-5 h-5 text-blue-400" />
@@ -131,13 +135,34 @@ export default function App() {
         </div>
 
         {/* Right Column: Execution Logs & Status */}
-        <div className="lg:col-span-7 flex flex-col gap-6">
-          <div className="glass-panel rounded-2xl p-6 flex-1 flex flex-col min-h-[500px]">
-            <div className="flex justify-between items-center mb-4 border-b border-white/5 pb-4">
-              <h2 className="text-lg font-semibold flex items-center gap-2">
-                <ListOrdered className="w-5 h-5 text-purple-400" />
-                Agent Timeline
-              </h2>
+        <div className="lg:col-span-8 flex flex-col gap-6">
+          <div className="glass-panel rounded-2xl p-6 flex-1 flex flex-col min-h-[600px]">
+            
+            <div className="flex justify-between items-center mb-6 border-b border-white/5 pb-4">
+              <div className="flex space-x-6">
+                <button 
+                  onClick={() => setActiveTab('timeline')}
+                  className={`flex items-center gap-2 font-semibold pb-2 border-b-2 transition-colors ${activeTab === 'timeline' ? 'text-purple-400 border-purple-400' : 'text-slate-400 border-transparent hover:text-slate-200'}`}
+                >
+                  <ListOrdered className="w-5 h-5" />
+                  Timeline
+                </button>
+                <button 
+                  onClick={() => setActiveTab('diff')}
+                  className={`flex items-center gap-2 font-semibold pb-2 border-b-2 transition-colors ${activeTab === 'diff' ? 'text-blue-400 border-blue-400' : 'text-slate-400 border-transparent hover:text-slate-200'}`}
+                >
+                  <FileCode className="w-5 h-5" />
+                  Diff Viewer
+                </button>
+                <button 
+                  onClick={() => setActiveTab('tests')}
+                  className={`flex items-center gap-2 font-semibold pb-2 border-b-2 transition-colors ${activeTab === 'tests' ? 'text-emerald-400 border-emerald-400' : 'text-slate-400 border-transparent hover:text-slate-200'}`}
+                >
+                  <Beaker className="w-5 h-5" />
+                  Test Results
+                </button>
+              </div>
+
               {activeRun && activeRun.status && activeRun.status !== 'PENDING' && (
                 <div className={`px-3 py-1 rounded-full text-xs font-bold border ${activeRun.status === 'COMPLETED_SUCCESS' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'}`}>
                   {activeRun.status.replace(/_/g, ' ')}
@@ -146,7 +171,9 @@ export default function App() {
             </div>
             
             <div className="flex-1 overflow-y-auto relative p-2">
-              <AgentTimeline runId={activeRun ? activeRun.run_id : null} isActive={!!activeRun} />
+              {activeTab === 'timeline' && <AgentTimeline runId={activeRun ? activeRun.run_id : null} isActive={!!activeRun} />}
+              {activeTab === 'diff' && <DiffViewer runId={activeRun ? activeRun.run_id : null} />}
+              {activeTab === 'tests' && <TestResults runId={activeRun ? activeRun.run_id : null} />}
             </div>
           </div>
         </div>
