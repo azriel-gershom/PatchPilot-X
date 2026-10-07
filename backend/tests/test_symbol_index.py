@@ -1,5 +1,6 @@
 from app.services.symbol_index import extract_symbols
 
+
 def test_python_extractor():
     code = """
 import os
@@ -18,6 +19,7 @@ async def login():
     assert "os" in symbols["imports"]
     assert "pydantic.BaseModel" in symbols["imports"]
     assert "POST /login" in symbols["routes"]
+
 
 def test_js_extractor():
     code = """

@@ -1,11 +1,13 @@
-import os
 import json
-import httpx
-from typing import Type, TypeVar, Any
-from pydantic import BaseModel, ValidationError
-from app.llm.base import LLMProvider, LLMError
+import os
+from typing import Any, Type, TypeVar
 
-T = TypeVar('T', bound=BaseModel)
+import httpx
+from app.llm.base import LLMError, LLMProvider
+from pydantic import BaseModel, ValidationError
+
+T = TypeVar("T", bound=BaseModel)
+
 
 class GeminiProvider(LLMProvider):
     def __init__(self, api_key: str = None, model: str = None):
@@ -17,26 +19,28 @@ class GeminiProvider(LLMProvider):
     def _get_url(self) -> str:
         return f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent?key={self.api_key}"
 
-    def _build_payload(self, prompt: str, system_prompt: str = "", response_schema: dict = None):
+    def _build_payload(
+        self, prompt: str, system_prompt: str = "", response_schema: dict = None
+    ):
         if system_prompt:
             payload = {
                 "contents": [{"parts": [{"text": prompt}]}],
-                "system_instruction": {"parts": [{"text": system_prompt}]}
+                "system_instruction": {"parts": [{"text": system_prompt}]},
             }
         else:
-            payload = {
-                "contents": [{"parts": [{"text": prompt}]}]
-            }
-            
+            payload = {"contents": [{"parts": [{"text": prompt}]}]}
+
         if response_schema:
             payload["generationConfig"] = {
                 "responseMimeType": "application/json",
             }
             schema_str = json.dumps(response_schema)
-            payload["contents"][0]["parts"].append({
-                "text": f"\n\nYou must respond in JSON format matching this schema:\n{schema_str}"
-            })
-            
+            payload["contents"][0]["parts"].append(
+                {
+                    "text": f"\n\nYou must respond in JSON format matching this schema:\n{schema_str}"
+                }
+            )
+
         return payload
 
     async def _make_request(self, payload: dict) -> dict:
@@ -63,12 +67,14 @@ class GeminiProvider(LLMProvider):
         data = await self._make_request(payload)
         return self._extract_text(data)
 
-    async def generate_structured(self, prompt: str, schema_model: Type[T], system_prompt: str = "") -> T:
+    async def generate_structured(
+        self, prompt: str, schema_model: Type[T], system_prompt: str = ""
+    ) -> T:
         schema = schema_model.model_json_schema()
         payload = self._build_payload(prompt, system_prompt, response_schema=schema)
         data = await self._make_request(payload)
         text_resp = self._extract_text(data)
-        
+
         text_resp = text_resp.strip()
         if text_resp.startswith("```json"):
             text_resp = text_resp[7:]

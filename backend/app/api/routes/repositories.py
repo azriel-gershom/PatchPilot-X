@@ -1,14 +1,17 @@
+import uuid
+
+from app.models.domain import RepositoryInfo
+from app.services.repo_manager import RepoManager
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from app.services.repo_manager import RepoManager
-from app.models.domain import RepositoryInfo
-import uuid
 
 router = APIRouter()
 repo_manager = RepoManager()
 
+
 class InspectRequest(BaseModel):
     repository_url: str
+
 
 @router.post("/inspect", response_model=RepositoryInfo)
 def inspect_repository(req: InspectRequest):

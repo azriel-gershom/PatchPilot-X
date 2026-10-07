@@ -1,6 +1,8 @@
 import os
-from app.sandbox.diff_utils import generate_unified_diff
+
 from app.core.storage import BASE_DIR
+from app.sandbox.diff_utils import generate_unified_diff
+
 
 class PatchGenerator:
     def generate_patch(self, modifications: list[dict]) -> str:
@@ -18,11 +20,11 @@ class PatchGenerator:
             file_path = mod["file_path"]
             original = mod["original"]
             modified = mod["modified"]
-            
+
             diff = generate_unified_diff(original, modified, file_path)
             if diff:
                 diffs.append(diff)
-                
+
         # Join diffs, ensuring no excessive newlines
         joined = "".join(diffs)
         return joined

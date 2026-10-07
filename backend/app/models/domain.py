@@ -1,6 +1,8 @@
 from enum import Enum
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
+
 from pydantic import BaseModel, Field
+
 
 class RunStatus(str, Enum):
     CREATED = "CREATED"
@@ -21,11 +23,13 @@ class RunStatus(str, Enum):
     REJECTED = "REJECTED"
     FAILED = "FAILED"
 
+
 class RepositoryInfo(BaseModel):
     url: str
     branch: str
     commit_sha: Optional[str] = None
     workspace_path: Optional[str] = None
+
 
 class RepositoryMap(BaseModel):
     file_tree: Dict[str, Any] = Field(default_factory=dict)
@@ -40,6 +44,7 @@ class RepositoryMap(BaseModel):
     imports: List[str] = Field(default_factory=list)
     api_routes: List[str] = Field(default_factory=list)
 
+
 class FrameworkInfo(BaseModel):
     language: str
     framework: Optional[str] = None
@@ -51,9 +56,11 @@ class FrameworkInfo(BaseModel):
     confidence: float
     evidence: List[str] = Field(default_factory=list)
 
+
 class ChangeRequest(BaseModel):
     request: str
     repository_url: str
+
 
 class ChangeContract(BaseModel):
     goal: str
@@ -63,11 +70,13 @@ class ChangeContract(BaseModel):
     edge_cases: List[str] = Field(default_factory=list)
     validation_plan: List[str] = Field(default_factory=list)
 
+
 class LocalizedFile(BaseModel):
     path: str
     score: float
     reason: str
     symbols: List[str] = Field(default_factory=list)
+
 
 class PatchPlan(BaseModel):
     files_to_modify: List[str] = Field(default_factory=list)
@@ -76,6 +85,7 @@ class PatchPlan(BaseModel):
     steps: List[str] = Field(default_factory=list)
     tests_to_run: List[str] = Field(default_factory=list)
     risk_notes: str = ""
+
 
 class TestExecution(BaseModel):
     command: str
@@ -87,6 +97,7 @@ class TestExecution(BaseModel):
     stderr: str
     timed_out: bool
 
+
 class TestSummary(BaseModel):
     passed: int
     failed: int
@@ -95,6 +106,7 @@ class TestSummary(BaseModel):
     stdout: str
     stderr: str
 
+
 class BehavioralTwin(BaseModel):
     tests: TestSummary
     routes: List[str] = Field(default_factory=list)
@@ -102,11 +114,13 @@ class BehavioralTwin(BaseModel):
     function_signatures: List[str] = Field(default_factory=list)
     test_files: List[str] = Field(default_factory=list)
 
+
 class BehavioralComparison(BaseModel):
     expected_changes: List[str] = Field(default_factory=list)
     unexpected_changes: List[str] = Field(default_factory=list)
     preserved_behavior: List[str] = Field(default_factory=list)
     unknown_comparisons: List[str] = Field(default_factory=list)
+
 
 class BlindValidationCase(BaseModel):
     id: str
@@ -116,17 +130,21 @@ class BlindValidationCase(BaseModel):
     expected_behavior: str
     execution_type: str
 
+
 class BlindValidationPlan(BaseModel):
     cases: List[BlindValidationCase] = Field(default_factory=list)
+
 
 class HallucinationCheck(BaseModel):
     status: str
     evidence: List[str] = Field(default_factory=list)
 
+
 class EvidenceGateResult(BaseModel):
     status: str
     reason: str
     classification: Optional[str] = None
+
 
 class RunEvent(BaseModel):
     timestamp: str

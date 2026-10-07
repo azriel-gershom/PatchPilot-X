@@ -1,11 +1,14 @@
 import abc
-from typing import TypeVar, Type, Any
+from typing import Any, Type, TypeVar
+
 from pydantic import BaseModel
 
-T = TypeVar('T', bound=BaseModel)
+T = TypeVar("T", bound=BaseModel)
+
 
 class LLMError(Exception):
     pass
+
 
 class LLMProvider(abc.ABC):
     @abc.abstractmethod
@@ -13,5 +16,7 @@ class LLMProvider(abc.ABC):
         pass
 
     @abc.abstractmethod
-    async def generate_structured(self, prompt: str, schema_model: Type[T], system_prompt: str = "") -> T:
+    async def generate_structured(
+        self, prompt: str, schema_model: Type[T], system_prompt: str = ""
+    ) -> T:
         pass
