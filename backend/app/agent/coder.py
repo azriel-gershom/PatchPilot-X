@@ -15,7 +15,8 @@ class CoderAgent:
         self, 
         contract: ChangeContract, 
         file_path: str, 
-        original_content: str
+        original_content: str,
+        feedback: str = None
     ) -> str:
         
         system_prompt = (
@@ -31,9 +32,13 @@ class CoderAgent:
             f"Must Change: {contract.must_change}\n"
             f"Must Preserve: {contract.must_preserve}\n\n"
             f"File Path: {file_path}\n"
-            f"Original Content:\n```\n{original_content}\n```\n\n"
-            "Generate the complete new file content."
+            f"Original Content:\n```\n{original_content}\n```\n"
         )
+        
+        if feedback:
+            prompt += f"\nPREVIOUS ATTEMPT FAILED WITH FEEDBACK:\n{feedback}\nPlease fix the issues and try again.\n"
+            
+        prompt += "\nGenerate the complete new file content."
         
         response = await self.llm.generate_structured(prompt, FileModification, system_prompt)
         
