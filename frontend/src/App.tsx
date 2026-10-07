@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { 
   ShieldCheck, 
-  Terminal, 
   Activity, 
   Play, 
   RefreshCw,
   GitBranch,
-  Search
+  ListOrdered
 } from 'lucide-react';
+import AgentTimeline from './components/timeline/AgentTimeline';
 import './index.css';
 
 interface RunStatus {
@@ -21,59 +21,38 @@ export default function App() {
   const [githubUrl, setGithubUrl] = useState('https://github.com/azriel-gershom/PatchPilot-X');
   const [requestText, setRequestText] = useState('Fix the divide by zero bug in calculator.py');
   const [isSyncing, setIsSyncing] = useState(false);
-  const [isRunning, setIsRunning] = useState(false);
   const [activeRun, setActiveRun] = useState<RunStatus | null>(null);
-  const [logs, setLogs] = useState<string[]>([]);
-
-  const addLog = (msg: string) => {
-    setLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${msg}`]);
-  };
 
   const handleSync = async () => {
     setIsSyncing(true);
-    addLog(`Syncing repository: ${githubUrl}...`);
     try {
-      const res = await fetch('/api/sync', {
+      await fetch('/api/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ github_url: githubUrl })
       });
-      if (res.ok) {
-        addLog(`Sync accepted. Framework detection and index building in background.`);
-      } else {
-        addLog(`Sync failed: ${res.statusText}`);
-      }
     } catch (err) {
-      addLog(`Error syncing: ${err}`);
+      console.error(err);
     }
     setIsSyncing(false);
   };
 
   const handleRunAgent = async () => {
-    setIsRunning(true);
-    addLog(`Initializing Verification Arena for: ${githubUrl}`);
-    addLog(`Mission: ${requestText}`);
+    setActiveRun(null); // Reset active run on new start
     try {
       const res = await fetch('/api/agent/run', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ github_url: githubUrl, request: requestText })
+        body: JSON.stringify({ github_url: githubUrl, task: requestText })
       });
       
       const data = await res.json();
-      setActiveRun(data);
-      
-      if (data.status === 'COMPLETED_SUCCESS') {
-        addLog(`✅ Verification Passed! Patch accepted deterministic validation.`);
-        addLog(`Reason: ${data.reason}`);
-      } else {
-        addLog(`❌ Verification Failed! Patch rejected by Evidence Gate.`);
-        addLog(`Reason: ${data.reason || data.error}`);
-      }
+      setActiveRun(data); // this gives us the run_id to pass to Timeline
     } catch (err) {
-      addLog(`Error running agent: ${err}`);
+      console.error(err);
     }
-    setIsRunning(false);
+    // We let the timeline polling check when it's done. But we don't have a callback easily unless we poll here too.
+    // Actually, the user can just watch the timeline!
   };
 
   return (
@@ -142,20 +121,10 @@ export default function App() {
               </div>
               <button 
                 onClick={handleRunAgent}
-                disabled={isRunning}
-                className="w-full btn-primary px-4 py-3 rounded-lg font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-50"
+                className="w-full btn-primary px-4 py-3 rounded-lg font-bold text-sm flex items-center justify-center gap-2"
               >
-                {isRunning ? (
-                  <>
-                    <RefreshCw className="w-5 h-5 animate-spin" />
-                    Engaging Behavioral Twin...
-                  </>
-                ) : (
-                  <>
-                    <Play className="w-5 h-5" />
-                    Deploy Agent to Blind Test Chamber
-                  </>
-                )}
+                <Play className="w-5 h-5" />
+                Deploy Agent to Blind Test Chamber
               </button>
             </div>
           </div>
@@ -166,38 +135,18 @@ export default function App() {
           <div className="glass-panel rounded-2xl p-6 flex-1 flex flex-col min-h-[500px]">
             <div className="flex justify-between items-center mb-4 border-b border-white/5 pb-4">
               <h2 className="text-lg font-semibold flex items-center gap-2">
-                <Terminal className="w-5 h-5 text-purple-400" />
-                Evidence Gate Telemetry
+                <ListOrdered className="w-5 h-5 text-purple-400" />
+                Agent Timeline
               </h2>
-              {activeRun && (
+              {activeRun && activeRun.status && activeRun.status !== 'PENDING' && (
                 <div className={`px-3 py-1 rounded-full text-xs font-bold border ${activeRun.status === 'COMPLETED_SUCCESS' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'}`}>
                   {activeRun.status.replace(/_/g, ' ')}
                 </div>
               )}
             </div>
             
-            <div className="flex-1 bg-slate-950 rounded-xl border border-slate-800 p-4 font-mono text-sm overflow-y-auto relative">
-              {logs.length === 0 ? (
-                <div className="absolute inset-0 flex items-center justify-center text-slate-600 flex-col gap-3">
-                  <Search className="w-8 h-8 opacity-50" />
-                  <p>Awaiting deployment orders...</p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {logs.map((log, i) => (
-                    <div key={i} className={`${log.includes('✅') ? 'text-emerald-400' : log.includes('❌') ? 'text-rose-400' : 'text-slate-300'}`}>
-                      {log}
-                    </div>
-                  ))}
-                  {isRunning && (
-                    <div className="text-blue-400 animate-pulse flex items-center gap-2 mt-4">
-                      <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce"></span>
-                      <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce delay-75"></span>
-                      <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce delay-150"></span>
-                    </div>
-                  )}
-                </div>
-              )}
+            <div className="flex-1 overflow-y-auto relative p-2">
+              <AgentTimeline runId={activeRun ? activeRun.run_id : null} isActive={!!activeRun} />
             </div>
           </div>
         </div>

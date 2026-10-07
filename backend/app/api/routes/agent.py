@@ -91,3 +91,58 @@ async def get_run_patch(run_id: str):
 
     with open(patch_path, "r", encoding="utf-8") as f:
         return f.read()
+
+
+@router.get("/runs/{run_id}/events")
+async def get_run_events(run_id: str):
+    run_dir = os.path.join(BASE_DIR, run_id)
+    if not os.path.exists(run_dir):
+        raise HTTPException(status_code=404, detail="Run not found")
+
+    events = []
+
+    # We use file existence and timestamps as actual events
+    files = os.listdir(run_dir)
+
+    # Helper to add event if file exists
+    def add_event(filename, event_type, name, data_key=None):
+        if filename in files:
+            path = os.path.join(run_dir, filename)
+            timestamp = os.path.getmtime(path)
+            dt = datetime.datetime.fromtimestamp(
+                timestamp, tz=datetime.timezone.utc
+            ).isoformat()
+
+            data = None
+            if data_key and filename.endswith(".json"):
+                from app.core.storage import load_artifact
+
+                data = load_artifact(run_id, filename.replace(".json", ""))
+
+            events.append(
+                {"type": event_type, "name": name, "timestamp": dt, "data": data}
+            )
+
+    # Map artifacts to events
+    add_event("run_status.json", "STATUS", "Run Status", True)
+    add_event("framework.json", "ANALYSIS", "Framework detected", True)
+    add_event("repo_map.json", "MAPPING", "Repository mapped", True)
+    add_event("contract.json", "PLANNING", "Change Contract created", True)
+    add_event(
+        "post_test_summary_attempt_0.json", "TESTING", "Targeted tests complete", True
+    )
+    add_event(
+        "hallucination_attempt_0.json",
+        "VALIDATION",
+        "Hallucination check complete",
+        True,
+    )
+    add_event(
+        "validation_attempt_0.json", "VALIDATION", "Evidence Gate evaluated", True
+    )
+    add_event("patch.diff", "PATCH", "Patch generated")
+
+    # Sort events by timestamp
+    events.sort(key=lambda x: x["timestamp"])
+
+    return {"events": events}
