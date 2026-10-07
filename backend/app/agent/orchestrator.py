@@ -8,6 +8,7 @@ from app.agent.task_contract import TaskContractAgent
 from app.agent.validator import BlindValidator, ValidationResult
 from app.core.storage import save_artifact
 from app.llm.base import LLMProvider
+from app.services.webhook import WebhookNotifier
 from app.sandbox.executor import CommandExecutor
 from app.sandbox.patcher import PatchGenerator
 from app.services.framework_detector import FrameworkDetector
@@ -30,6 +31,7 @@ class MasterOrchestrator:
         self.hallucination_checker = HallucinationChecker(self.llm)
         self.explainer = ExplainerAgent(self.llm)
         self.validator = BlindValidator(self.llm)
+        self.webhook = WebhookNotifier()
         self.patcher = PatchGenerator()
 
     async def run(self, run_id: str, github_url: str, user_request: str) -> dict:
@@ -63,6 +65,7 @@ class MasterOrchestrator:
             MAX_RETRIES = 2
             validation = None
             modifications = []
+            patch_content = None
 
             for attempt in range(MAX_RETRIES + 1):
                 feedback = validation.reason if validation else None
@@ -143,6 +146,12 @@ class MasterOrchestrator:
                 "COMPLETED_SUCCESS"
                 if validation.passed
                 else "COMPLETED_FAILED_VALIDATION"
+            )
+
+            await self.webhook.notify(
+                run_id, 
+                status, 
+                patch_content if status == "COMPLETED_SUCCESS" else None
             )
 
             return {
