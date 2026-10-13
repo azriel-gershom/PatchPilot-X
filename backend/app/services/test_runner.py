@@ -6,6 +6,7 @@ from app.sandbox.executor import CommandExecutor
 
 
 class TestRunner:
+    __test__ = False
     def __init__(self, executor: CommandExecutor = None):
         self.executor = executor or CommandExecutor()
 
@@ -51,18 +52,18 @@ class TestRunner:
         skipped = 0
 
         if "pytest" in command:
-            match = re.search(r"==+(.*?)==+", output)
-            if match:
-                summary_line = match.group(1).lower()
-                passed_match = re.search(r"(\d+)\s+passed", summary_line)
-                failed_match = re.search(r"(\d+)\s+failed", summary_line)
-                skipped_match = re.search(r"(\d+)\s+skipped", summary_line)
-                if passed_match:
-                    passed = int(passed_match.group(1))
-                if failed_match:
-                    failed = int(failed_match.group(1))
-                if skipped_match:
-                    skipped = int(skipped_match.group(1))
+            summary_matches = re.findall(r"==+([\s\S]*?)==+", output)
+            target_text = summary_matches[-1].lower() if summary_matches else output.lower()
+
+            passed_match = re.search(r"(\d+)\s+passed", target_text) or re.search(r"(\d+)\s+passed", output.lower())
+            failed_match = re.search(r"(\d+)\s+failed", target_text) or re.search(r"(\d+)\s+failed", output.lower())
+            skipped_match = re.search(r"(\d+)\s+skipped", target_text) or re.search(r"(\d+)\s+skipped", output.lower())
+            if passed_match:
+                passed = int(passed_match.group(1))
+            if failed_match:
+                failed = int(failed_match.group(1))
+            if skipped_match:
+                skipped = int(skipped_match.group(1))
         elif "npm" in command or "jest" in command or "vitest" in command:
             match = re.search(r"Tests:\s*(.*?total)", output)
             if match:

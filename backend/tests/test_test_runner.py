@@ -37,6 +37,25 @@ def test_pytest_parsing():
     assert summary.exit_code == 1
 
 
+def test_pytest_parsing_multiline():
+    out = """============================= test session starts ==============================
+platform darwin -- Python 3.14.2, pytest-9.1.1
+collected 5 items
+
+tests/test_calculator.py .....                                           [100%]
+
+============================== 5 passed in 0.01s ===============================
+"""
+    runner = TestRunner(executor=MockExecutor(out, 0))
+    finfo = FrameworkInfo(language="PYTHON", test_command="pytest", confidence=1.0)
+
+    summary = runner.run_tests("/tmp", finfo)
+    assert summary.passed == 5
+    assert summary.failed == 0
+    assert summary.skipped == 0
+    assert summary.exit_code == 0
+
+
 def test_jest_parsing():
     out = "Tests:       2 failed, 5 passed, 7 total"
     runner = TestRunner(executor=MockExecutor(out, 1))

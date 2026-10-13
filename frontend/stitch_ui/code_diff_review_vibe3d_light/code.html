@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="web_dashboard" name="shell-type"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<style>
+    @layer base {
+      html, body { margin:0; padding:0; }
+      body { overscroll-behavior: none; }
+      main > :first-child { margin-top: 0 !important; }
+      main > :last-child { margin-bottom: 0 !important; }
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  </style>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "surface-canvas": "#F8FAFC",
+            "surface-card": "#FFFFFF",
+            "border-hairline": "#E2E8F0",
+            "border-subtle": "#F1F5F9",
+            "text-primary": "#0F172A",
+            "text-secondary": "#475569",
+            "text-muted": "#94A3B8",
+            "brand-emerald": "#10B981",
+            "brand-emerald-dark": "#059669",
+            "brand-emerald-light": "#DCFCE7",
+            "brand-emerald-text": "#15803D",
+            "brand-rose-light": "#FEE2E2",
+            "brand-rose-text": "#DC2626",
+            "brand-rose-border": "#FECACA",
+            "brand-blue": "#2563EB",
+            "brand-blue-light": "#EFF6FF",
+          },
+          borderRadius: {
+            "DEFAULT": "0.375rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "2xl": "1rem",
+            "full": "9999px"
+          },
+          fontFamily: {
+            sans: ["Geist", "ui-sans-serif", "system-ui", "sans-serif"],
+            mono: ["JetBrains Mono", "ui-monospace", "monospace"]
+          }
+        }
+      }
+    };
+  </script>
+</head>
+<body class="bg-surface-canvas font-sans text-text-primary antialiased min-h-screen">
+<!-- LEFT SIDEBAR (Light Vibe3D Style) -->
+<aside class="fixed left-0 top-0 h-screen w-[240px] bg-white border-r border-border-hairline z-40 flex flex-col justify-between overflow-y-auto">
+<div class="flex flex-col">
+<!-- Workspace Brand -->
+<div class="h-[56px] px-4 border-b border-border-hairline flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<div class="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 border border-emerald-200 text-brand-emerald">
+<span class="material-symbols-outlined text-[17px]">terminal</span>
+</div>
+<span class="font-semibold text-[14px] text-text-primary tracking-tight">PatchPilot X</span>
+</div>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-slate-100 text-slate-600 border border-border-hairline">v1.4-eng</span>
+</div>
+<!-- Repo Selector Pill -->
+<div class="p-3">
+<button class="w-full flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-border-hairline text-left hover:border-slate-300 hover:bg-slate-100/60 transition-all shadow-xs" type="button">
+<div class="flex items-center gap-2 truncate">
+<span class="material-symbols-outlined text-text-muted text-[17px]">deployed_code</span>
+<div class="flex flex-col truncate">
+<span class="font-mono text-[11px] font-semibold text-text-primary truncate">PatchPilot-X</span>
+<span class="font-mono text-[10px] text-text-muted flex items-center gap-1">
+<span class="material-symbols-outlined text-[11px]">fork_right</span>main
+              </span>
+</div>
+</div>
+<span class="material-symbols-outlined text-text-muted text-[16px]">unfold_more</span>
+</button>
+</div>
+<!-- Workspace Nav Section -->
+<div class="px-3 pt-1">
+<div class="px-2 pb-1.5 text-[10px] uppercase font-mono font-semibold text-text-muted tracking-wider">Workspace</div>
+<nav class="flex flex-col space-y-0.5 text-[13px]">
+<a class="flex items-center px-2.5 py-1.5 rounded-lg text-text-secondary hover:bg-slate-100 hover:text-text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-[17px] mr-2 text-text-muted">grid_view</span>Overview
+          </a>
+<a class="flex items-center justify-between px-2.5 py-1.5 rounded-lg text-text-secondary hover:bg-slate-100 hover:text-text-primary transition-colors" href="#">
+<div class="flex items-center">
+<span class="material-symbols-outlined text-[17px] mr-2 text-text-muted">play_circle</span>Runs
+            </div>
+<span class="px-1.5 py-0.5 rounded font-mono text-[10px] font-medium bg-slate-100 text-slate-600 border border-border-hairline">42</span>
+</a>
+<a class="flex items-center px-2.5 py-1.5 rounded-lg text-text-secondary hover:bg-slate-100 hover:text-text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-[17px] mr-2 text-text-muted">folder</span>Repository
+          </a>
+<a class="flex items-center px-2.5 py-1.5 rounded-lg text-text-secondary hover:bg-slate-100 hover:text-text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-[17px] mr-2 text-text-muted">difference</span>Changes
+          </a>
+<a class="flex items-center px-2.5 py-1.5 rounded-lg text-text-secondary hover:bg-slate-100 hover:text-text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-[17px] mr-2 text-text-muted">verified</span>Verification
+          </a>
+<a class="flex items-center px-2.5 py-1.5 rounded-lg text-text-secondary hover:bg-slate-100 hover:text-text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-[17px] mr-2 text-text-muted">history</span>History
+          </a>
+</nav>
+</div>
+<!-- Current Run Nav Section -->
+<div class="px-3 pt-4">
+<div class="px-2 pb-1.5 flex items-center justify-between text-[10px] uppercase font-mono font-semibold text-text-muted tracking-wider">
+<span>Current Run</span>
+<span class="text-brand-emerald font-semibold">#PP-042</span>
+</div>
+<nav class="flex flex-col space-y-0.5 text-[13px]">
+<a class="flex items-center px-2.5 py-1.5 rounded-lg text-text-secondary hover:bg-slate-100 hover:text-text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-[17px] mr-2 text-text-muted">insights</span>Run Overview
+          </a>
+<a class="flex items-center px-2.5 py-1.5 rounded-lg text-text-secondary hover:bg-slate-100 hover:text-text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-[17px] mr-2 text-text-muted">account_tree</span>Repository Map
+          </a>
+<a class="flex items-center px-2.5 py-1.5 rounded-lg text-text-secondary hover:bg-slate-100 hover:text-text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-[17px] mr-2 text-text-muted">contract</span>Change Contract
+          </a>
+<a class="flex items-center px-2.5 py-1.5 rounded-lg text-text-secondary hover:bg-slate-100 hover:text-text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-[17px] mr-2 text-text-muted">alt_route</span>Plan
+          </a>
+<!-- Active Nav Item -->
+<a class="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-emerald-50 text-brand-emerald-dark font-medium border border-emerald-200/60 shadow-xs" href="#">
+<div class="flex items-center">
+<span class="material-symbols-outlined text-[17px] mr-2 text-brand-emerald">compare_arrows</span>Diff
+            </div>
+<span class="font-mono text-[10px] font-semibold text-text-secondary">
+<span class="text-emerald-600">+31</span> <span class="text-rose-600">-8</span>
+</span>
+</a>
+<a class="flex items-center justify-between px-2.5 py-1.5 rounded-lg text-text-secondary hover:bg-slate-100 hover:text-text-primary transition-colors" href="#">
+<div class="flex items-center">
+<span class="material-symbols-outlined text-[17px] mr-2 text-text-muted">task_alt</span>Tests
+            </div>
+<span class="font-mono text-[10px] text-emerald-600 font-semibold bg-emerald-50 px-1 rounded">68/68</span>
+</a>
+<a class="flex items-center px-2.5 py-1.5 rounded-lg text-text-secondary hover:bg-slate-100 hover:text-text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-[17px] mr-2 text-text-muted">shield</span>Verification Arena
+          </a>
+<a class="flex items-center px-2.5 py-1.5 rounded-lg text-text-secondary hover:bg-slate-100 hover:text-text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-[17px] mr-2 text-text-muted">assignment</span>Evidence
+          </a>
+</nav>
+</div>
+</div>
+<!-- Sidebar Footer -->
+<div class="flex flex-col border-t border-border-hairline bg-slate-50/50">
+<div class="p-3 border-b border-border-hairline">
+<button class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-white border border-border-hairline text-text-secondary hover:text-text-primary transition-all shadow-xs text-[12px]" type="button">
+<span class="flex items-center font-medium">
+<span class="material-symbols-outlined text-[16px] mr-1.5 text-text-muted">keyboard</span>Command
+          </span>
+<kbd class="px-1.5 py-0.5 rounded font-mono text-[10px] bg-slate-100 border border-slate-200 text-slate-500">⌘K</kbd>
+</button>
+</div>
+<div class="px-3 py-1.5 flex items-center justify-between text-[12px] text-text-secondary font-medium">
+<a class="flex items-center px-2 py-1 rounded-md hover:text-text-primary hover:bg-slate-100 transition-colors" href="#">
+<span class="material-symbols-outlined text-[16px] mr-1.5 text-text-muted">settings</span>Settings
+        </a>
+<a class="flex items-center px-2 py-1 rounded-md hover:text-text-primary hover:bg-slate-100 transition-colors" href="#">
+<span class="material-symbols-outlined text-[16px] mr-1.5 text-text-muted">menu_book</span>Docs
+        </a>
+</div>
+<div class="p-3 border-t border-border-hairline flex items-center justify-between">
+<div class="flex items-center gap-2.5 truncate">
+<img alt="Profile" class="w-8 h-8 rounded-full object-cover ring-1 ring-border-hairline shadow-xs" src="https://lh3.googleusercontent.com/aida/AEtjO1WSitHK6Snv4pOdFqcJrk8mbyynhXRHPro3ttvlcN38362qzUmCs0vdkfyMre5psy2DTqg1yd9Tnq5Jfw3vsYBJI08DTz3FPFSgIMlEmpXS2JreiemvjLaCKI88nJMaNeAleu3ggeOj6iLFO8RaPpG8lcjWkqXgRuDrONvpBjj-DHHvXxfJ0ccG0QniDI_giBCRpiudvKoH-Ki8R39Ov-tjRR42mx84w-fqX9U3sJkZ"/>
+<div class="flex flex-col truncate">
+<span class="text-[12px] font-semibold text-text-primary truncate leading-tight">Alex Chen</span>
+<span class="text-[11px] text-text-muted truncate leading-tight">Staff Eng</span>
+</div>
+</div>
+<button class="text-text-muted hover:text-text-primary transition-colors p-1" type="button">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</div>
+</aside>
+<!-- MAIN VIEWPORT WRAPPER -->
+<div class="pl-[240px]">
+<!-- TOP NAVIGATION HEADER -->
+<header class="fixed top-0 left-[240px] right-0 h-[56px] bg-white/90 backdrop-blur-md border-b border-border-hairline z-30 flex items-center justify-between px-6">
+<div class="flex items-center gap-2.5 font-mono text-[13px]">
+<span class="text-text-muted font-medium">PatchPilot-X</span>
+<span class="text-slate-300">/</span>
+<span class="text-text-primary font-semibold flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-brand-emerald">commit</span>Run #PP-042
+        </span>
+</div>
+<div class="flex items-center gap-2 font-mono text-[11px]">
+<div class="flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-100 border border-slate-200 text-slate-700">
+<span class="material-symbols-outlined text-[13px] text-slate-500">fork_right</span>
+<span>main</span>
+</div>
+<div class="flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-100 border border-slate-200 text-slate-700">
+<span class="text-brand-emerald font-semibold">a82f71c</span>
+</div>
+<div class="flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-100 border border-slate-200 text-slate-600">
+<span class="material-symbols-outlined text-[13px] text-slate-400">timer</span>
+<span>02:14</span>
+</div>
+<div class="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold">
+<span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+<span>RUNNING</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="h-8 px-3 rounded-lg bg-white border border-slate-200 text-slate-700 hover:text-rose-600 hover:border-rose-300 hover:bg-rose-50/30 transition-all font-medium text-[12px] flex items-center gap-1.5 shadow-xs" type="button">
+<span class="material-symbols-outlined text-[15px]">cancel</span>Cancel Run
+        </button>
+<div class="h-4 w-px bg-slate-200 mx-1"></div>
+<button class="h-8 px-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 font-mono text-[11px] font-medium flex items-center gap-1 shadow-xs" type="button">
+          Diff <kbd class="text-[9px] text-emerald-600 font-mono">(D)</kbd>
+</button>
+<button class="h-8 px-2.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-600 hover:text-text-primary hover:bg-slate-100 transition-colors font-mono text-[11px] font-medium flex items-center gap-1" type="button">
+          Checks <kbd class="text-[9px] text-text-muted font-mono">(T)</kbd>
+</button>
+<button class="h-8 px-2.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-600 hover:text-text-primary hover:bg-slate-100 transition-colors font-mono text-[11px] font-medium flex items-center gap-1" type="button">
+          Arena <kbd class="text-[9px] text-text-muted font-mono">(V)</kbd>
+</button>
+<button class="h-8 w-8 rounded-lg bg-slate-50 border border-slate-200 text-slate-600 hover:text-text-primary hover:bg-slate-100 transition-colors flex items-center justify-center" type="button">
+<span class="material-symbols-outlined text-[17px]">more_horiz</span>
+</button>
+</div>
+</header>
+<!-- MAIN BODY CONTENT -->
+<main class="relative pt-[56px] min-h-screen bg-surface-canvas">
+<div class="w-full max-w-[1680px] mx-auto p-4 lg:p-6 space-y-4">
+<!-- DIFF COMMAND & OVERVIEW CONTROLS STRIP (Vibe3D Crisp Toolbar) -->
+<div class="flex flex-wrap items-center justify-between gap-3 bg-white px-4 py-2.5 rounded-xl border border-border-hairline shadow-xs">
+<!-- Left: Run Changes summary & Viewed Files -->
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-2">
+<span class="text-[15px] font-semibold text-text-primary tracking-tight">Run #PP-042 Changes</span>
+<span class="text-slate-300">·</span>
+<span class="font-mono text-[12px] text-text-secondary">2 files changed</span>
+<span class="inline-flex items-center px-2 py-0.5 rounded-md font-mono font-semibold text-[11px] bg-brand-emerald-light text-brand-emerald-text border border-emerald-200">+31</span>
+<span class="inline-flex items-center px-2 py-0.5 rounded-md font-mono font-semibold text-[11px] bg-brand-rose-light text-brand-rose-text border border-brand-rose-border">−8</span>
+</div>
+<div class="h-4 w-px bg-slate-200 hidden md:block"></div>
+<!-- Quick Viewed Status -->
+<div class="hidden xl:flex items-center gap-2 font-mono text-[11px] text-text-muted">
+<span>Viewed:</span>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
+<span class="material-symbols-outlined text-[13px] text-emerald-600">check</span>
+                user_service.py
+              </span>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
+<span class="material-symbols-outlined text-[13px] text-emerald-600">check</span>
+                users.py
+              </span>
+</div>
+</div>
+<!-- Right: Diff Toolbar Controls -->
+<div class="flex items-center gap-2">
+<!-- Split/Unified View Toggle -->
+<div class="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200/80" id="viewModeToggle">
+<button class="px-2.5 py-1 rounded-md text-[12px] bg-white text-text-primary font-semibold shadow-xs flex items-center gap-1.5 transition-all" id="splitBtn" type="button">
+<span class="material-symbols-outlined text-[14px] text-slate-600">splitscreen</span>
+                Split
+              </button>
+<button class="px-2.5 py-1 rounded-md text-[12px] text-text-secondary hover:text-text-primary font-medium flex items-center gap-1.5 transition-all" id="unifiedBtn" type="button">
+<span class="material-symbols-outlined text-[14px]">view_stream</span>
+                Unified
+              </button>
+</div>
+<!-- Whitespace Toggle -->
+<button class="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-text-secondary hover:text-text-primary hover:bg-slate-50 text-[12px] font-medium flex items-center gap-1.5 shadow-xs transition-colors" title="Toggle whitespace changes" type="button">
+<span class="material-symbols-outlined text-[15px] text-slate-500">space_bar</span>
+<span class="hidden sm:inline">Ignore Whitespace</span>
+</button>
+<!-- Symbol Jump -->
+<button class="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-text-secondary hover:text-text-primary hover:bg-slate-50 font-mono text-[11px] font-medium hidden sm:flex items-center gap-1.5 shadow-xs transition-colors" type="button">
+<span class="material-symbols-outlined text-[14px] text-emerald-600">data_object</span>
+              Jump to symbol
+              <kbd class="px-1 py-0.2 rounded bg-slate-100 border border-slate-200 text-[9px] text-slate-500">⌥O</kbd>
+</button>
+<!-- File Navigation Buttons -->
+<div class="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200/80">
+<button class="px-2 py-1 rounded-md text-slate-600 hover:text-text-primary hover:bg-white text-[12px] font-medium flex items-center gap-1 transition-all" title="Previous File (P)" type="button">
+<span class="material-symbols-outlined text-[14px]">arrow_upward</span>
+<span class="hidden lg:inline">Prev</span>
+<kbd class="text-[9px] text-slate-400 font-mono">P</kbd>
+</button>
+<button class="px-2 py-1 rounded-md text-slate-600 hover:text-text-primary hover:bg-white text-[12px] font-medium flex items-center gap-1 transition-all" title="Next File (N)" type="button">
+<span class="material-symbols-outlined text-[14px]">arrow_downward</span>
+<span class="hidden lg:inline">Next</span>
+<kbd class="text-[9px] text-slate-400 font-mono">N</kbd>
+</button>
+</div>
+</div>
+</div>
+<!-- MAIN 3-COLUMN COCKPIT (Tree Navigator, Code Diff Canvas, Inspector Panel) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+<!-- LEFT: Compact File Tree Navigator -->
+<div class="lg:col-span-3 xl:col-span-2 flex flex-col gap-3 bg-white p-3.5 rounded-xl border border-border-hairline shadow-xs">
+<div class="flex items-center justify-between pb-2 border-b border-border-hairline">
+<span class="text-[11px] uppercase font-mono font-semibold text-text-muted tracking-wider">Changed Files (2)</span>
+<span class="font-mono text-[10px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">diff tree</span>
+</div>
+<!-- File Cards List -->
+<div class="flex flex-col gap-2 font-mono text-[12px]">
+<!-- File 1 Active -->
+<a class="group flex flex-col p-2.5 rounded-lg bg-emerald-50/60 text-text-primary border border-emerald-300 shadow-xs hover:bg-emerald-50 transition-all" href="#diff-user-service">
+<div class="flex items-center justify-between mb-1">
+<div class="flex items-center gap-1.5 truncate">
+<span class="material-symbols-outlined text-[15px] text-emerald-600 shrink-0">code</span>
+<span class="truncate font-semibold text-text-primary text-[12px]">user_service.py</span>
+</div>
+<span class="px-1.5 py-0.2 rounded text-[9px] bg-emerald-100 text-emerald-800 font-semibold border border-emerald-200">MODIFIED</span>
+</div>
+<span class="truncate text-[10px] text-text-muted pl-5">backend/app/services</span>
+<div class="flex items-center gap-1.5 pl-5 mt-1 text-[11px] font-semibold">
+<span class="text-emerald-600">+18</span>
+<span class="text-rose-600">-4</span>
+<span class="ml-auto text-[10px] font-sans font-medium text-emerald-700 flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[12px]">check_box</span> viewed
+                  </span>
+</div>
+</a>
+<!-- File 2 -->
+<a class="group flex flex-col p-2.5 rounded-lg bg-slate-50/60 hover:bg-slate-100/80 text-text-secondary hover:text-text-primary transition-all border border-border-hairline" href="#diff-users-api">
+<div class="flex items-center justify-between mb-1">
+<div class="flex items-center gap-1.5 truncate">
+<span class="material-symbols-outlined text-[15px] text-slate-500 shrink-0">api</span>
+<span class="truncate font-medium text-text-primary text-[12px]">users.py</span>
+</div>
+<span class="px-1.5 py-0.2 rounded text-[9px] bg-emerald-100 text-emerald-800 font-semibold border border-emerald-200">MODIFIED</span>
+</div>
+<span class="truncate text-[10px] text-text-muted pl-5">backend/app/api</span>
+<div class="flex items-center gap-1.5 pl-5 mt-1 text-[11px] font-semibold">
+<span class="text-emerald-600">+13</span>
+<span class="text-rose-600">-4</span>
+<span class="ml-auto text-[10px] font-sans font-medium text-slate-400 flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[12px]">check_box</span> viewed
+                  </span>
+</div>
+</a>
+<!-- Untouched Reference File -->
+<div class="flex items-center justify-between p-2 rounded-lg bg-slate-50/40 opacity-70 text-text-muted border border-dashed border-slate-200">
+<div class="flex items-center gap-1.5 min-w-0">
+<span class="material-symbols-outlined text-[14px] shrink-0 text-slate-400">check_circle</span>
+<div class="flex flex-col min-w-0">
+<span class="truncate font-mono text-[11px] text-slate-600">test_users.py</span>
+<span class="truncate text-[9px]">tests/unit · ref</span>
+</div>
+</div>
+<span class="text-[9px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-mono">0 diff</span>
+</div>
+</div>
+<!-- AST Impact Metric Card -->
+<div class="mt-1 p-3 bg-slate-50 rounded-xl flex flex-col gap-2 border border-border-hairline">
+<div class="flex items-center justify-between">
+<span class="text-[11px] font-medium text-text-secondary flex items-center gap-1.5">
+<span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  AST Impact
+                </span>
+<span class="font-mono text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold border border-emerald-200">Low Risk</span>
+</div>
+<div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden flex">
+<div class="bg-emerald-500 h-full" style="width: 82%"></div>
+<div class="bg-blue-500 h-full" style="width: 18%"></div>
+</div>
+<div class="flex justify-between items-center text-[10px] font-mono text-text-muted">
+<span>Signatures: safe</span>
+<span>Calls: non-breaking</span>
+</div>
+</div>
+</div>
+<!-- CENTER: GitHub/Linear Light Mode Inspired Diff Canvas -->
+<div class="lg:col-span-9 xl:col-span-7 flex flex-col gap-4">
+<!-- FILE DIFF BLOCK 1: user_service.py -->
+<section class="bg-white rounded-xl border border-border-hairline shadow-xs overflow-hidden" id="diff-user-service">
+<!-- Diff File Header -->
+<div class="flex flex-wrap items-center justify-between bg-slate-50/90 border-b border-border-hairline px-4 py-2.5">
+<div class="flex items-center gap-2 min-w-0">
+<span class="material-symbols-outlined text-[18px] text-slate-600">description</span>
+<span class="font-mono text-[12px] font-semibold text-text-primary truncate">backend/app/services/user_service.py</span>
+<span class="px-2 py-0.5 rounded text-[10px] font-mono bg-white text-slate-500 border border-border-hairline shadow-2xs">Python · 214 lines</span>
+</div>
+<div class="flex items-center gap-2 font-mono text-[11px]">
+<span class="inline-flex items-center px-1.5 py-0.5 rounded bg-emerald-100/80 text-emerald-700 font-bold border border-emerald-200">+18</span>
+<span class="inline-flex items-center px-1.5 py-0.5 rounded bg-rose-100/80 text-rose-700 font-bold border border-rose-200">-4</span>
+<button class="ml-1 px-2 py-1 rounded-md bg-white border border-slate-200 text-text-secondary hover:text-text-primary hover:bg-slate-50 flex items-center gap-1 text-[11px] font-sans font-medium shadow-2xs" type="button">
+<span class="material-symbols-outlined text-[13px] text-emerald-600">check_circle</span>
+                    Viewed
+                  </button>
+</div>
+</div>
+<!-- Folded Context Banner -->
+<div class="px-4 py-1.5 bg-blue-50/50 border-b border-blue-100 text-text-secondary font-mono text-[11px] flex items-center justify-between">
+<div class="flex items-center gap-2">
+<button class="flex items-center gap-1 hover:text-brand-blue text-slate-500 transition-colors" title="Expand up">
+<span class="material-symbols-outlined text-[14px]">unfold_more</span>
+</button>
+<span class="text-blue-700 font-semibold">@@ -42,12 +42,26 @@ class UserService:</span>
+</div>
+<span class="text-slate-400 text-[10px]">42 context lines hidden</span>
+</div>
+<!-- Code Diff Engine Table (Light Mode Colors: Soft Rose & Emerald) -->
+<div class="font-mono text-[12px] overflow-x-auto bg-white select-text leading-5">
+<!-- Unchanged Line 42 -->
+<div class="flex items-stretch hover:bg-slate-50 transition-colors border-b border-slate-100/60">
+<div class="w-10 text-right pr-2 text-slate-400 bg-slate-50/70 shrink-0 select-none text-[11px] border-r border-slate-200/80">42</div>
+<div class="w-10 text-right pr-2 text-slate-400 bg-slate-50/70 shrink-0 select-none text-[11px] border-r border-slate-200/80">42</div>
+<div class="w-6 text-center text-slate-300 select-none shrink-0"> </div>
+<div class="px-2 py-0.5 text-text-secondary whitespace-pre"> <span class="text-purple-600 font-medium">def</span> <span class="text-blue-600 font-semibold">__init__</span>(<span class="text-slate-800">self</span>, db: Session):</div>
+</div>
+<!-- Unchanged Line 43 -->
+<div class="flex items-stretch hover:bg-slate-50 transition-colors border-b border-slate-100/60">
+<div class="w-10 text-right pr-2 text-slate-400 bg-slate-50/70 shrink-0 select-none text-[11px] border-r border-slate-200/80">43</div>
+<div class="w-10 text-right pr-2 text-slate-400 bg-slate-50/70 shrink-0 select-none text-[11px] border-r border-slate-200/80">43</div>
+<div class="w-6 text-center text-slate-300 select-none shrink-0"> </div>
+<div class="px-2 py-0.5 text-text-secondary whitespace-pre">        self.db = db</div>
+</div>
+<!-- Unchanged Line 44 -->
+<div class="flex items-stretch hover:bg-slate-50 transition-colors border-b border-slate-100/60">
+<div class="w-10 text-right pr-2 text-slate-400 bg-slate-50/70 shrink-0 select-none text-[11px] border-r border-slate-200/80">44</div>
+<div class="w-10 text-right pr-2 text-slate-400 bg-slate-50/70 shrink-0 select-none text-[11px] border-r border-slate-200/80">44</div>
+<div class="w-6 text-center text-slate-300 select-none shrink-0"> </div>
+<div class="px-2 py-0.5 text-text-secondary whitespace-pre"> </div>
+</div>
+<!-- Deletion Line 1 -->
+<div class="flex items-stretch bg-brand-rose-light/50 hover:bg-brand-rose-light/80 transition-colors border-b border-rose-200/40">
+<div class="w-10 text-right pr-2 text-rose-600 font-medium bg-rose-100/60 shrink-0 select-none text-[11px] border-r border-rose-200">45</div>
+<div class="w-10 text-right pr-2 text-rose-300 bg-rose-100/60 shrink-0 select-none text-[11px] border-r border-rose-200"> </div>
+<div class="w-6 text-center text-rose-600 font-bold select-none shrink-0">−</div>
+<div class="px-2 py-0.5 text-brand-rose-text whitespace-pre"> <span class="text-rose-500 font-medium">def</span> <span class="font-semibold text-rose-700">get_user_by_username</span>(self, username: str) -&gt; Optional[User]:</div>
+</div>
+<!-- Deletion Line 2 -->
+<div class="flex items-stretch bg-brand-rose-light/50 hover:bg-brand-rose-light/80 transition-colors border-b border-rose-200/40">
+<div class="w-10 text-right pr-2 text-rose-600 font-medium bg-rose-100/60 shrink-0 select-none text-[11px] border-r border-rose-200">46</div>
+<div class="w-10 text-right pr-2 text-rose-300 bg-rose-100/60 shrink-0 select-none text-[11px] border-r border-rose-200"> </div>
+<div class="w-6 text-center text-rose-600 font-bold select-none shrink-0">−</div>
+<div class="px-2 py-0.5 text-brand-rose-text whitespace-pre"> <span class="text-rose-500 font-medium">return</span> self.db.query(User).filter(User.username == username).first()</div>
+</div>
+<!-- Addition Line 1 -->
+<div class="flex items-stretch bg-brand-emerald-light/50 hover:bg-brand-emerald-light/80 transition-colors border-b border-emerald-200/40">
+<div class="w-10 text-right pr-2 text-emerald-300 bg-emerald-100/60 shrink-0 select-none text-[11px] border-r border-emerald-200"> </div>
+<div class="w-10 text-right pr-2 text-emerald-700 font-medium bg-emerald-100/60 shrink-0 select-none text-[11px] border-r border-emerald-200">45</div>
+<div class="w-6 text-center text-emerald-700 font-bold select-none shrink-0">+</div>
+<div class="px-2 py-0.5 text-text-primary whitespace-pre"> <span class="text-purple-600 font-medium">def</span> <span class="text-brand-emerald-text font-bold">get_user_by_username</span>(self, username: str, <span class="bg-emerald-200/70 px-1 rounded text-emerald-900 font-medium">case_sensitive: bool = False</span>) -&gt; Optional[User]:</div>
+</div>
+<!-- Addition Line 2 -->
+<div class="flex items-stretch bg-brand-emerald-light/50 hover:bg-brand-emerald-light/80 transition-colors border-b border-emerald-200/40">
+<div class="w-10 text-right pr-2 text-emerald-300 bg-emerald-100/60 shrink-0 select-none text-[11px] border-r border-emerald-200"> </div>
+<div class="w-10 text-right pr-2 text-emerald-700 font-medium bg-emerald-100/60 shrink-0 select-none text-[11px] border-r border-emerald-200">46</div>
+<div class="w-6 text-center text-emerald-700 font-bold select-none shrink-0">+</div>
+<div class="px-2 py-0.5 text-emerald-800/90 whitespace-pre"> <span class="text-slate-500 italic">"""Retrieves user by username with case-insensitive normalization preserving ID lookup contracts."""</span></div>
+</div>
+<!-- Addition Line 3 -->
+<div class="flex items-stretch bg-brand-emerald-light/50 hover:bg-brand-emerald-light/80 transition-colors border-b border-emerald-200/40">
+<div class="w-10 text-right pr-2 text-emerald-300 bg-emerald-100/60 shrink-0 select-none text-[11px] border-r border-emerald-200"> </div>
+<div class="w-10 text-right pr-2 text-emerald-700 font-medium bg-emerald-100/60 shrink-0 select-none text-[11px] border-r border-emerald-200">47</div>
+<div class="w-6 text-center text-emerald-700 font-bold select-none shrink-0">+</div>
+<div class="px-2 py-0.5 text-text-primary whitespace-pre"> <span class="text-purple-600 font-medium">if not</span> username:</div>
+</div>
+<!-- Addition Line 4 -->
+<div class="flex items-stretch bg-brand-emerald-light/50 hover:bg-brand-emerald-light/80 transition-colors border-b border-emerald-200/40">
+<div class="w-10 text-right pr-2 text-emerald-300 bg-emerald-100/60 shrink-0 select-none text-[11px] border-r border-emerald-200"> </div>
+<div class="w-10 text-right pr-2 text-emerald-700 font-medium bg-emerald-100/60 shrink-0 select-none text-[11px] border-r border-emerald-200">48</div>
+<div class="w-6 text-center text-emerald-700 font-bold select-none shrink-0">+</div>
+<div class="px-2 py-0.5 text-text-primary whitespace-pre"> <span class="text-purple-600 font-medium">return</span> None</div>
+</div>
+<!-- Addition Line 5 -->
+<div class="flex items-stretch bg-brand-emerald-light/50 hover:bg-brand-emerald-light/80 transition-colors border-b border-emerald-200/40">
+<div class="w-10 text-right pr-2 text-emerald-300 bg-emerald-100/60 shrink-0 select-none text-[11px] border-r border-emerald-200"> </div>
+<div class="w-10 text-right pr-2 text-emerald-700 font-medium bg-emerald-100/60 shrink-0 select-none text-[11px] border-r border-emerald-200">49</div>
+<div class="w-6 text-center text-emerald-700 font-bold select-none shrink-0">+</div>
+<div class="px-2 py-0.5 text-text-primary whitespace-pre"> <span class="text-purple-600 font-medium">if</span> case_sensitive:</div>
+</div>
+<!-- Addition Line 6 -->
+<div class="flex items-stretch bg-brand-emerald-light/50 hover:bg-brand-emerald-light/80 transition-colors border-b border-emerald-200/40">
+<div class="w-10 text-right pr-2 text-emerald-300 bg-emerald-100/60 shrink-0 select-none text-[11px] border-r border-emerald-200"> </div>
+<div class="w-10 text-right pr-2 text-emerald-700 font-medium bg-emerald-100/60 shrink-0 select-none text-[11px] border-r border-emerald-200">50</div>
+<div class="w-6 text-center text-emerald-700 font-bold select-none shrink-0">+</div>
+<div class="px-2 py-0.5 text-text-primary whitespace-pre"> <span class="text-purple-600 font-medium">return</span> self.db.query(User).filter(User.username == username).first()</div>
+</div>
+<!-- Addition Line 7 -->
+<div class="flex items-stretch bg-brand-emerald-light/50 hover:bg-brand-emerald-light/80 transition-colors border-b border-emerald-200/40">
+<div class="w-10 text-right pr-2 text-emerald-300 bg-emerald-100/60 shrink-0 select-none text-[11px] border-r border-emerald-200"> </div>
+<div class="w-10 text-right pr-2 text-emerald-700 font-medium bg-emerald-100/60 shrink-0 select-none text-[11px] border-r border-emerald-200">51</div>
+<div class="w-6 text-center text-emerald-700 font-bold select-none shrink-0">+</div>
+<div class="px-2 py-0.5 text-text-primary whitespace-pre"> <span class="text-purple-600 font-medium">return</span> self.db.query(User).filter(func.lower(User.username) == username.strip().lower()).first()</div>
+</div>
+<!-- Unchanged Line 52 -->
+<div class="flex items-stretch hover:bg-slate-50 transition-colors border-b border-slate-100/60">
+<div class="w-10 text-right pr-2 text-slate-400 bg-slate-50/70 shrink-0 select-none text-[11px] border-r border-slate-200/80">47</div>
+<div class="w-10 text-right pr-2 text-slate-400 bg-slate-50/70 shrink-0 select-none text-[11px] border-r border-slate-200/80">52</div>
+<div class="w-6 text-center text-slate-300 select-none shrink-0"> </div>
+<div class="px-2 py-0.5 text-text-secondary whitespace-pre"> </div>
+</div>
+<!-- Unchanged Line 53 -->
+<div class="flex items-stretch hover:bg-slate-50 transition-colors">
+<div class="w-10 text-right pr-2 text-slate-400 bg-slate-50/70 shrink-0 select-none text-[11px] border-r border-slate-200/80">48</div>
+<div class="w-10 text-right pr-2 text-slate-400 bg-slate-50/70 shrink-0 select-none text-[11px] border-r border-slate-200/80">53</div>
+<div class="w-6 text-center text-slate-300 select-none shrink-0"> </div>
+<div class="px-2 py-0.5 text-text-secondary whitespace-pre"> <span class="text-purple-600 font-medium">def</span> <span class="text-blue-600 font-semibold">get_user_by_id</span>(self, user_id: int) -&gt; Optional[User]:</div>
+</div>
+</div>
+</section>
+<!-- FILE DIFF BLOCK 2: users.py -->
+<section class="bg-white rounded-xl border border-border-hairline shadow-xs overflow-hidden" id="diff-users-api">
+<!-- Diff File Header -->
+<div class="flex flex-wrap items-center justify-between bg-slate-50/90 border-b border-border-hairline px-4 py-2.5">
+<div class="flex items-center gap-2 min-w-0">
+<span class="material-symbols-outlined text-[18px] text-slate-600">description</span>
+<span class="font-mono text-[12px] font-semibold text-text-primary truncate">backend/app/api/users.py</span>
+<span class="px-2 py-0.5 rounded text-[10px] font-mono bg-white text-slate-500 border border-border-hairline shadow-2xs">FastAPI Router · 98 lines</span>
+</div>
+<div class="flex items-center gap-2 font-mono text-[11px]">
+<span class="inline-flex items-center px-1.5 py-0.5 rounded bg-emerald-100/80 text-emerald-700 font-bold border border-emerald-200">+13</span>
+<span class="inline-flex items-center px-1.5 py-0.5 rounded bg-rose-100/80 text-rose-700 font-bold border border-rose-200">-4</span>
+<button class="ml-1 px-2 py-1 rounded-md bg-white border border-slate-200 text-text-secondary hover:text-text-primary hover:bg-slate-50 flex items-center gap-1 text-[11px] font-sans font-medium shadow-2xs" type="button">
+<span class="material-symbols-outlined text-[13px] text-emerald-600">check_circle</span>
+                    Viewed
+                  </button>
+</div>
+</div>
+<!-- Folded Context Banner -->
+<div class="px-4 py-1.5 bg-blue-50/50 border-b border-blue-100 text-text-secondary font-mono text-[11px] flex items-center justify-between">
+<div class="flex items-center gap-2">
+<button class="flex items-center gap-1 hover:text-brand-blue text-slate-500 transition-colors" title="Expand up">
+<span class="material-symbols-outlined text-[14px]">unfold_more</span>
+</button>
+<span class="text-blue-700 font-semibold">@@ -18,8 +18,17 @@ async def search_user_endpoint:</span>
+</div>
+<span class="text-slate-400 text-[10px]">18 context lines hidden</span>
+</div>
+<!-- Code Diff Engine Table -->
+<div class="font-mono text-[12px] overflow-x-auto bg-white select-text leading-5">
+<!-- Deletion Line -->
+<div class="flex items-stretch bg-brand-rose-light/50 hover:bg-brand-rose-light/80 transition-colors border-b border-rose-200/40">
+<div class="w-10 text-right pr-2 text-rose-600 font-medium bg-rose-100/60 shrink-0 select-none text-[11px] border-r border-rose-200">21</div>
+<div class="w-10 text-right pr-2 text-rose-300 bg-rose-100/60 shrink-0 select-none text-[11px] border-r border-rose-200"> </div>
+<div class="w-6 text-center text-rose-600 font-bold select-none shrink-0">−</div>
+<div class="px-2 py-0.5 text-brand-rose-text whitespace-pre">    user = user_service.get_user_by_username(query)</div>
+</div>
+<!-- Addition Lines -->
+<div class="flex items-stretch bg-brand-emerald-light/50 hover:bg-brand-emerald-light/80 transition-colors border-b border-emerald-200/40">
+<div class="w-10 text-right pr-2 text-emerald-300 bg-emerald-100/60 shrink-0 select-none text-[11px] border-r border-emerald-200"> </div>
+<div class="w-10 text-right pr-2 text-emerald-700 font-medium bg-emerald-100/60 shrink-0 select-none text-[11px] border-r border-emerald-200">21</div>
+<div class="w-6 text-center text-emerald-700 font-bold select-none shrink-0">+</div>
+<div class="px-2 py-0.5 text-slate-500 whitespace-pre"> <span class="italic"># Backward-compatible parameter parsing with case_sensitive fallback</span></div>
+</div>
+<div class="flex items-stretch bg-brand-emerald-light/50 hover:bg-brand-emerald-light/80 transition-colors">
+<div class="w-10 text-right pr-2 text-emerald-300 bg-emerald-100/60 shrink-0 select-none text-[11px] border-r border-emerald-200"> </div>
+<div class="w-10 text-right pr-2 text-emerald-700 font-medium bg-emerald-100/60 shrink-0 select-none text-[11px] border-r border-emerald-200">22</div>
+<div class="w-6 text-center text-emerald-700 font-bold select-none shrink-0">+</div>
+<div class="px-2 py-0.5 text-text-primary whitespace-pre">    user = user_service.get_user_by_username(username=query, case_sensitive=exact)</div>
+</div>
+</div>
+</section>
+<!-- Keyboard Shortcuts & Status Banner -->
+<div class="flex flex-wrap items-center justify-between gap-3 bg-white p-3 rounded-xl border border-border-hairline text-slate-500 text-[12px] shadow-xs">
+<div class="flex items-center gap-2.5 flex-wrap">
+<span class="flex items-center gap-1">
+<kbd class="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 font-mono text-[10px] text-slate-700">J</kbd> / 
+                  <kbd class="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 font-mono text-[10px] text-slate-700">K</kbd> 
+                  Next/Prev Chunk
+                </span>
+<span class="text-slate-300">·</span>
+<span class="flex items-center gap-1">
+<kbd class="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 font-mono text-[10px] text-slate-700">Enter</kbd> Add Line Comment
+                </span>
+<span class="text-slate-300">·</span>
+<span class="flex items-center gap-1">
+<kbd class="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 font-mono text-[10px] text-slate-700">V</kbd> Verification Arena
+                </span>
+</div>
+<div class="flex items-center gap-1 text-emerald-700 font-medium">
+<span class="material-symbols-outlined text-[16px] text-emerald-600">verified</span>
+<span class="font-mono text-[11px]">Contract Integrity Preserved</span>
+</div>
+</div>
+</div>
+<!-- RIGHT: Inspector Panel - CHANGE RATIONALE, SYMBOLS & ACTIONS -->
+<div class="lg:col-span-12 xl:col-span-3 flex flex-col gap-4">
+<!-- Card 1: Change Rationale -->
+<div class="bg-white p-4 rounded-xl border border-border-hairline shadow-xs flex flex-col gap-3">
+<div class="flex items-center justify-between pb-2 border-b border-border-hairline">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px] text-brand-emerald">psychology</span>
+<span class="font-semibold text-[13px] text-text-primary">Change Rationale</span>
+</div>
+<span class="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">PatchPilot Core</span>
+</div>
+<div class="text-[13px] text-text-secondary leading-relaxed">
+                Owns user query resolution logic. Normalized query in <code class="text-brand-emerald-text font-mono text-[11px] bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">UserService</code> prevents redundant case-sensitivity queries across all active caller modules.
+              </div>
+<!-- Affected Symbols Block -->
+<div class="flex flex-col gap-1.5 pt-1">
+<span class="text-[10px] uppercase font-mono font-semibold text-text-muted tracking-wider">Affected Symbols (2)</span>
+<div class="bg-slate-50 p-2.5 rounded-lg border border-border-hairline flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<span class="font-mono text-[11px] text-text-primary font-semibold truncate">UserService.get_user_by_username()</span>
+<span class="text-emerald-700 font-mono text-[10px] font-semibold bg-emerald-100 px-1.5 py-0.2 rounded">Updated</span>
+</div>
+<p class="text-[11px] text-text-secondary leading-normal">Signature extended with backward-compatible default <code class="text-slate-700 font-mono bg-white px-1 border border-slate-200 rounded">case_sensitive=False</code>.</p>
+</div>
+<div class="bg-slate-50 p-2.5 rounded-lg border border-border-hairline flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<span class="font-mono text-[11px] text-text-primary font-semibold truncate">UserService.search_users()</span>
+<span class="text-blue-700 font-mono text-[10px] font-semibold bg-blue-100 px-1.5 py-0.2 rounded">Extended</span>
+</div>
+<p class="text-[11px] text-text-secondary leading-normal">Propagates whitespace trimming before resolution.</p>
+</div>
+</div>
+<!-- Preserved Contracts Section -->
+<div class="flex flex-col gap-1.5 pt-1">
+<span class="text-[10px] uppercase font-mono font-semibold text-text-muted tracking-wider">Preserved Contracts</span>
+<div class="flex flex-col gap-1 font-mono text-[11px]">
+<div class="flex items-center justify-between p-2 rounded-lg bg-emerald-50/50 border border-emerald-200/70">
+<div class="flex items-center gap-1.5 truncate">
+<span class="material-symbols-outlined text-[15px] text-emerald-600">verified_user</span>
+<span class="text-text-primary font-medium truncate">get_user_by_id()</span>
+</div>
+<span class="text-[9px] text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded font-bold">UNTOUCHED</span>
+</div>
+<div class="px-2 text-[10px] text-slate-400 font-sans">Verified by 14 unit test assertions</div>
+<div class="flex items-center justify-between p-2 rounded-lg bg-emerald-50/50 border border-emerald-200/70 mt-0.5">
+<div class="flex items-center gap-1.5 truncate">
+<span class="material-symbols-outlined text-[15px] text-emerald-600">verified_user</span>
+<span class="text-text-primary font-medium truncate">create_user()</span>
+</div>
+<span class="text-[9px] text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded font-bold">UNTOUCHED</span>
+</div>
+</div>
+</div>
+<!-- Associated Tests -->
+<div class="flex flex-col gap-1.5 pt-1">
+<span class="text-[10px] uppercase font-mono font-semibold text-text-muted tracking-wider">Associated Tests</span>
+<div class="p-2.5 rounded-lg bg-slate-50 border border-border-hairline flex items-center justify-between gap-1">
+<div class="flex flex-col min-w-0">
+<span class="font-mono text-[11px] text-text-primary font-medium truncate">tests/test_users.py</span>
+<span class="font-mono text-[10px] text-slate-500 truncate">::test_case_insensitive_username</span>
+</div>
+<div class="flex items-center gap-1.5 shrink-0">
+<span class="px-1.5 py-0.5 rounded font-mono text-[10px] bg-emerald-100 text-emerald-800 font-bold border border-emerald-200">PASSED</span>
+<span class="font-mono text-[10px] text-slate-400">12ms</span>
+</div>
+</div>
+</div>
+<!-- Action Review Buttons (Vibe3D Style: Bold, crisp Emerald Primary) -->
+<div class="pt-2 flex flex-col gap-2">
+<button class="w-full h-10 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-medium text-[13px] shadow-sm transition-all flex items-center justify-center gap-2 group" type="button">
+<span class="material-symbols-outlined text-[18px]">task_alt</span>
+<span>Approve &amp; Advance to Verification</span>
+</button>
+<button class="w-full h-9 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-medium text-[12px] shadow-2xs transition-all flex items-center justify-center gap-1.5" type="button">
+<span class="material-symbols-outlined text-[16px] text-slate-500">edit_note</span>
+                  Request Agent Re-draft
+                </button>
+</div>
+</div>
+<!-- Card 2: Diff Signature Radar & Backward Compatibility -->
+<div class="bg-white p-4 rounded-xl border border-border-hairline shadow-xs flex flex-col gap-2">
+<span class="text-[10px] uppercase font-mono font-semibold text-text-muted tracking-wider">Diff Signature Radar</span>
+<div class="flex items-center justify-between mt-1">
+<div class="flex flex-col">
+<span class="text-[24px] font-bold text-emerald-700 tracking-tight leading-tight">100%</span>
+<span class="text-[12px] text-text-secondary">Backward compatibility</span>
+</div>
+<!-- SVG Radial Ring with Emerald Vibe3D Accent -->
+<svg class="w-14 h-14 text-emerald-500" viewbox="0 0 36 36">
+<path class="text-slate-100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3"></path>
+<path class="text-emerald-500" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="100, 100" stroke-linecap="round" stroke-width="3.2"></path>
+</svg>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<script>
+    // Micro-interaction for Split/Unified buttons
+    const splitBtn = document.getElementById('splitBtn');
+    const unifiedBtn = document.getElementById('unifiedBtn');
+
+    if (splitBtn && unifiedBtn) {
+      splitBtn.addEventListener('click', () => {
+        splitBtn.className = "px-2.5 py-1 rounded-md text-[12px] bg-white text-text-primary font-semibold shadow-xs flex items-center gap-1.5 transition-all";
+        unifiedBtn.className = "px-2.5 py-1 rounded-md text-[12px] text-text-secondary hover:text-text-primary font-medium flex items-center gap-1.5 transition-all";
+      });
+
+      unifiedBtn.addEventListener('click', () => {
+        unifiedBtn.className = "px-2.5 py-1 rounded-md text-[12px] bg-white text-text-primary font-semibold shadow-xs flex items-center gap-1.5 transition-all";
+        splitBtn.className = "px-2.5 py-1 rounded-md text-[12px] text-text-secondary hover:text-text-primary font-medium flex items-center gap-1.5 transition-all";
+      });
+    }
+  </script>
+</body></html>

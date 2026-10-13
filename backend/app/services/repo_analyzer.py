@@ -57,6 +57,9 @@ class RepoAnalyzer:
                     ".cpp",
                     ".c",
                     ".h",
+                    ".html",
+                    ".htm",
+                    ".css",
                 ]:
                     lang_ext = ext[1:]
                     if lang_ext not in repo_map.languages:
@@ -87,6 +90,9 @@ class RepoAnalyzer:
                     ".cpp",
                     ".c",
                     ".h",
+                    ".html",
+                    ".htm",
+                    ".css",
                 ]:
                     repo_map.source_files.append(rel_path)
                 else:

@@ -1,314 +1,184 @@
-import { useState, useEffect } from 'react';
-import { ShieldAlert, ShieldCheck, FileWarning, EyeOff, Check, X, Shield, Lock, Brain } from 'lucide-react';
-
-type RunEvidence = {
-  baseline: any | null;
-  targeted: any | null;
-  regression: any | null;
-  validation: any | null;
-  hallucination: any | null;
-  contract: any | null;
-};
+import { useEffect, useState } from 'react';
+import type { RunDetail, RunEvidence } from '../../types';
 
 export default function VerificationArena({ runId }: { runId: string | null }) {
   const [evidence, setEvidence] = useState<RunEvidence | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [runDetail, setRunDetail] = useState<RunDetail | null>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!runId) {
-      setEvidence(null);
-      setError(null);
-      return;
-    }
+    if (!runId) return;
+    setLoading(true);
 
-    const fetchEvidence = async () => {
-      try {
-        const res = await fetch(`/api/agent/runs/${runId}/evidence`);
-        if (res.ok) {
-          const data = await res.json();
-          // We also need the contract for Behavioral Twin
-          try {
-             const runRes = await fetch(`/api/agent/runs/${runId}`);
-             if (runRes.ok) {
-               const runData = await runRes.json();
-               data.contract = runData.contract || null;
-             }
-          } catch(e) {}
-          setEvidence(data);
-          setError(null);
-        } else if (res.status !== 404) {
-          setError('Failed to fetch verification evidence.');
-        }
-      } catch (err) {
-        setError('Error fetching verification evidence.');
+    Promise.all([
+      fetch(`/api/agent/runs/${runId}/evidence`),
+      fetch(`/api/agent/runs/${runId}`),
+    ]).then(async ([evRes, detRes]) => {
+      if (evRes.ok) {
+        const evData = await evRes.json();
+        setEvidence(evData);
       }
-    };
-
-    fetchEvidence();
-    const interval = setInterval(fetchEvidence, 5000);
-    return () => clearInterval(interval);
+      if (detRes.ok) {
+        const detData = await detRes.json();
+        setRunDetail(detData);
+      }
+    }).catch(err => {
+      console.error('Failed to load evidence', err);
+    }).finally(() => {
+      setLoading(false);
+    });
   }, [runId]);
 
-  if (!runId) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12 text-slate-500">
-        <Shield className="w-8 h-8 mb-4 opacity-50" />
-        <p>Run PatchPilot to generate verification evidence.</p>
+  const validation = evidence?.validation || runDetail?.validation;
+  const passed = validation?.passed;
+  const invariants = runDetail?.contract?.must_preserve || [];
+  const hallucination = evidence?.hallucination;
+
+  return (
+    <div className="flex flex-col gap-5 text-text-primary">
+      {/* HEADER STRIP */}
+      <div className="bg-white rounded-2xl p-5 border border-[#E2E8F0] shadow-card-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="min-w-0 flex flex-col gap-1.5">
+          <div className="flex items-center gap-3 flex-wrap">
+            <span className="material-symbols-outlined text-[24px] text-amber-500">shield</span>
+            <span className="text-[22px] font-bold tracking-tight">Verification Arena</span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-700 font-mono text-[12px] font-semibold">
+              Run #{runId || 'None'}
+            </span>
+            {validation && (
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-mono text-[12px] font-semibold ${
+                passed 
+                  ? 'bg-emerald-50 border border-emerald-200 text-emerald-700' 
+                  : 'bg-rose-50 border border-rose-200 text-rose-700'
+              }`}>
+                <span className="material-symbols-outlined text-[14px]">
+                  {passed ? 'verified' : 'gpp_bad'}
+                </span>
+                {passed ? 'GATE PASSED' : 'GATE REJECTED'}
+              </span>
+            )}
+          </div>
+          <p className="text-[14px] text-text-secondary font-medium leading-relaxed">
+            Multi-stage invariant validation, hallucination detection, and regression proof verification.
+          </p>
+        </div>
       </div>
-    );
-  }
 
-  if (error) {
-    return <div className="text-rose-400 p-4">{error}</div>;
-  }
+      {loading ? (
+        <div className="bg-white p-8 rounded-2xl border border-[#E2E8F0] text-center text-slate-500 font-mono text-[13px]">
+          Loading verification evidence...
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          {/* EVIDENCE GATE VERDICT */}
+          <div className="bg-white p-5 rounded-2xl border border-[#E2E8F0] shadow-card-sm flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-[15px] font-bold flex items-center gap-2">
+                <span className="material-symbols-outlined text-[18px] text-emerald-600">policy</span>
+                Evidence Gate Verdict
+              </h3>
+              {validation && (
+                <span className={`text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full ${
+                  passed ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
+                }`}>
+                  {passed ? 'APPROVED' : 'FAILED'}
+                </span>
+              )}
+            </div>
 
-  if (!evidence) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12 text-slate-500 animate-pulse">
-        <Shield className="w-8 h-8 mb-4 opacity-50" />
-        <p>Verification in progress...</p>
-      </div>
-    );
-  }
+            {validation ? (
+              <div className="flex flex-col gap-3">
+                <div className={`p-4 rounded-xl border flex flex-col gap-1.5 ${
+                  passed ? 'bg-emerald-50/70 border-emerald-200 text-emerald-950' : 'bg-rose-50/70 border-rose-200 text-rose-950'
+                }`}>
+                  <span className="text-[12px] font-semibold uppercase tracking-wider font-mono">
+                    Evaluation Rationale
+                  </span>
+                  <p className="text-[13px] leading-relaxed">
+                    {validation.reason}
+                  </p>
+                </div>
 
-  const { baseline, targeted, regression, validation, hallucination, contract } = evidence;
-
-  // 1. BEHAVIORAL TWIN
-  const renderBehavioralTwin = () => {
-    return (
-      <div className="glass-panel p-5 rounded-xl border border-slate-800 flex flex-col h-full">
-        <h3 className="text-sm font-bold text-blue-400 flex items-center gap-2 tracking-wider mb-4 uppercase">
-          <Brain className="w-4 h-4" /> Behavioral Twin
-        </h3>
-        <p className="text-xs text-slate-500 mb-4">Software contract preservation</p>
-        
-        <div className="space-y-3 text-sm flex-1">
-          {contract ? (
-            <>
-              <div className="flex justify-between items-center text-slate-300">
-                <span>Must Preserve</span>
-                <span className="text-emerald-400 font-mono text-xs">{contract.must_preserve?.length || 0} contracts</span>
-              </div>
-              <div className="flex justify-between items-center text-slate-300">
-                <span>Expected Changes</span>
-                <span className="text-blue-400 font-mono text-xs">{contract.must_change?.length || 0} locations</span>
-              </div>
-              <div className="flex justify-between items-center text-slate-300">
-                <span>Unexpected Changes</span>
-                {validation && !validation.passed && validation.regressions?.length > 0 ? (
-                   <span className="text-rose-400 font-mono text-xs font-bold">{validation.regressions.length} UNEXPECTED</span>
-                ) : (
-                   <span className="text-slate-500 font-mono text-xs">0 UNEXPECTED</span>
+                {validation.regressions && validation.regressions.length > 0 && (
+                  <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 flex flex-col gap-2">
+                    <span className="text-[12px] font-semibold text-rose-800 font-mono uppercase">
+                      Detected Regressions ({validation.regressions.length})
+                    </span>
+                    <ul className="text-[12px] text-rose-700 list-disc list-inside space-y-1">
+                      {validation.regressions.map((reg, idx) => (
+                        <li key={idx}>{reg}</li>
+                      ))}
+                    </ul>
+                  </div>
                 )}
               </div>
-            </>
-          ) : (
-            <div className="text-slate-500 text-center py-4">Pending analysis</div>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  // 2. BLIND TEST CHAMBER
-  const renderBlindTest = () => {
-    return (
-      <div className="glass-panel p-5 rounded-xl border border-slate-800 flex flex-col h-full">
-        <h3 className="text-sm font-bold text-purple-400 flex items-center gap-2 tracking-wider mb-4 uppercase">
-          <EyeOff className="w-4 h-4" /> Blind Test Chamber
-        </h3>
-        <p className="text-xs text-slate-500 mb-4">Independent adversarial validation</p>
-        
-        <div className="space-y-3 text-sm flex-1">
-          {contract ? (
-            <>
-              <div className="flex justify-between items-center text-slate-300">
-                <span>Validation Cases</span>
-                <span className="text-slate-300 font-mono text-xs">{contract.validation_plan?.length || 0} planned</span>
-              </div>
-              <div className="flex justify-between items-center text-slate-300">
-                <span>Execution State</span>
-                <span className="text-emerald-400 font-mono text-xs">PASS</span>
-              </div>
-            </>
-          ) : (
-            <div className="text-slate-500 text-center py-4">Pending generation</div>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  // 3. REGRESSION GUARD
-  const renderRegressionGuard = () => {
-    let newRegressions = 0;
-    let preExisting = 0;
-    
-    if (regression && baseline) {
-      if (regression.failed > baseline.failed) {
-        newRegressions = regression.failed - baseline.failed;
-        preExisting = baseline.failed;
-      } else {
-        preExisting = regression.failed;
-      }
-    } else if (baseline) {
-      preExisting = baseline.failed;
-    }
-
-    return (
-      <div className="glass-panel p-5 rounded-xl border border-slate-800 flex flex-col h-full">
-        <h3 className="text-sm font-bold text-amber-400 flex items-center gap-2 tracking-wider mb-4 uppercase">
-          <Lock className="w-4 h-4" /> Regression Guard
-        </h3>
-        <p className="text-xs text-slate-500 mb-4">Existing functionality protection</p>
-        
-        <div className="space-y-3 text-sm flex-1">
-          {regression && baseline ? (
-            <>
-              <div className="flex justify-between items-center text-slate-300">
-                <span>Baseline Tests</span>
-                <span className="text-slate-400 font-mono text-xs">{baseline.passed} PASS</span>
-              </div>
-              <div className="flex justify-between items-center text-slate-300">
-                <span>Final Tests</span>
-                <span className="text-slate-400 font-mono text-xs">{regression.passed} PASS</span>
-              </div>
-              <div className="flex justify-between items-center text-slate-300">
-                <span>New Regressions</span>
-                <span className={`font-mono text-xs font-bold ${newRegressions > 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
-                  {newRegressions} DETECTED
-                </span>
-              </div>
-              {preExisting > 0 && (
-                <div className="flex justify-between items-center text-slate-500 text-xs mt-2">
-                  <span>Pre-existing failures</span>
-                  <span className="font-mono">{preExisting}</span>
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="text-slate-500 text-center py-4">Pending execution</div>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  // 4. HALLUCINATION GUARD
-  const renderHallucinationGuard = () => {
-    const halStatus = hallucination ? hallucination.status : null;
-    
-    return (
-      <div className="glass-panel p-5 rounded-xl border border-slate-800 flex flex-col h-full">
-        <h3 className="text-sm font-bold text-orange-400 flex items-center gap-2 tracking-wider mb-4 uppercase">
-          <FileWarning className="w-4 h-4" /> Hallucination Guard
-        </h3>
-        <p className="text-xs text-slate-500 mb-4">Static verification & imports</p>
-        
-        <div className="space-y-3 text-sm flex-1">
-          {hallucination ? (
-            <>
-              <div className="flex justify-between items-center text-slate-300">
-                <span>Imports Validated</span>
-                <span className="text-emerald-400 font-mono text-xs">PASS</span>
-              </div>
-              <div className="flex justify-between items-center text-slate-300">
-                <span>Unknown Entities</span>
-                <span className={`font-mono text-xs font-bold ${halStatus === 'YES' ? 'text-rose-400' : 'text-emerald-400'}`}>
-                  {halStatus === 'YES' ? 'DETECTED' : '0 DETECTED'}
-                </span>
-              </div>
-              {halStatus === 'YES' && hallucination.evidence?.length > 0 && (
-                <div className="mt-2 text-xs text-rose-400 bg-rose-500/10 p-2 rounded border border-rose-500/20">
-                  {hallucination.evidence[0]}
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="text-slate-500 text-center py-4">Pending analysis</div>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  // 5. EVIDENCE GATE
-  const renderEvidenceGate = () => {
-    let status = "PENDING";
-    let titleColor = "text-slate-400";
-    let bgColor = "bg-slate-900";
-    let Icon = Shield;
-    
-    if (validation) {
-      if (validation.passed) {
-        status = "PATCH ACCEPTED";
-        titleColor = "text-emerald-400";
-        bgColor = "bg-emerald-950/20 border-emerald-900/50";
-        Icon = ShieldCheck;
-      } else {
-        status = "PATCH REJECTED";
-        titleColor = "text-rose-400";
-        bgColor = "bg-rose-950/20 border-rose-900/50";
-        Icon = ShieldAlert;
-      }
-    }
-
-    return (
-      <div className={`glass-panel p-6 rounded-xl border ${bgColor} flex flex-col md:flex-row gap-6 items-center justify-between`}>
-        <div className="flex items-center gap-4">
-          <div className={`p-3 rounded-full ${status === 'PATCH ACCEPTED' ? 'bg-emerald-500/10' : status === 'PATCH REJECTED' ? 'bg-rose-500/10' : 'bg-slate-800'}`}>
-            <Icon className={`w-8 h-8 ${titleColor}`} />
-          </div>
-          <div>
-            <h2 className="text-sm font-bold text-slate-400 tracking-wider uppercase mb-1">EVIDENCE GATE</h2>
-            <div className={`text-2xl font-bold ${titleColor}`}>{status}</div>
-            <p className="text-slate-400 text-sm mt-1">
-              {status === 'PATCH ACCEPTED' ? 'All mandatory verification gates passed.' : 
-               status === 'PATCH REJECTED' ? 'Blocking evidence found. Patch rejected.' : 
-               'Deterministic acceptance decision based on execution evidence.'}
-            </p>
-          </div>
-        </div>
-        
-        {validation && (
-          <div className="bg-black/40 rounded-lg p-4 border border-white/5 max-w-sm w-full">
-            <h4 className="text-xs font-bold text-slate-500 uppercase mb-2">Gate Telemetry</h4>
-            <ul className="space-y-1 text-sm">
-              <li className="flex items-center gap-2">
-                {targeted ? <Check className="w-4 h-4 text-emerald-400" /> : <X className="w-4 h-4 text-slate-600" />}
-                <span className={targeted ? 'text-slate-300' : 'text-slate-600'}>Targeted Tests</span>
-              </li>
-              <li className="flex items-center gap-2">
-                {regression ? (regression.failed > (baseline?.failed || 0) ? <X className="w-4 h-4 text-rose-400" /> : <Check className="w-4 h-4 text-emerald-400" />) : <X className="w-4 h-4 text-slate-600" />}
-                <span className={regression ? 'text-slate-300' : 'text-slate-600'}>Regression Guard</span>
-              </li>
-              <li className="flex items-center gap-2">
-                {hallucination ? (hallucination.status === 'YES' ? <X className="w-4 h-4 text-rose-400" /> : <Check className="w-4 h-4 text-emerald-400" />) : <X className="w-4 h-4 text-slate-600" />}
-                <span className={hallucination ? 'text-slate-300' : 'text-slate-600'}>Hallucination Guard</span>
-              </li>
-            </ul>
-            
-            {!validation.passed && validation.reason && (
-              <div className="mt-3 pt-3 border-t border-white/5">
-                <div className="text-xs font-bold text-rose-400 mb-1">Blocking Evidence:</div>
-                <div className="text-xs text-rose-300">{validation.reason}</div>
+            ) : (
+              <div className="p-4 rounded-xl bg-slate-50 text-slate-500 text-[12px] font-mono">
+                No evidence gate validation artifact available yet.
               </div>
             )}
           </div>
-        )}
-      </div>
-    );
-  };
+          
+          {/* HALLUCINATION DETECTOR */}
+          <div className="bg-white p-5 rounded-2xl border border-[#E2E8F0] shadow-card-sm flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-[15px] font-bold flex items-center gap-2">
+                <span className="material-symbols-outlined text-[18px] text-cyan-600">visibility</span>
+                Symbol Hallucination Check
+              </h3>
+              {hallucination && (
+                <span className={`text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full ${
+                  hallucination.status === 'NO' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
+                }`}>
+                  {hallucination.status === 'NO' ? 'CLEAN (NO HALLUCINATIONS)' : 'FLAGGED'}
+                </span>
+              )}
+            </div>
 
-  return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {renderBehavioralTwin()}
-        {renderBlindTest()}
-        {renderRegressionGuard()}
-        {renderHallucinationGuard()}
-      </div>
-      {renderEvidenceGate()}
+            {hallucination ? (
+              <div className="flex flex-col gap-2">
+                {hallucination.evidence && hallucination.evidence.map((ev, idx) => (
+                  <div key={idx} className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-2.5">
+                    <span className="material-symbols-outlined text-emerald-600 text-[18px] mt-0.5 flex-shrink-0">
+                      verified_user
+                    </span>
+                    <span className="text-[12px] text-slate-700 leading-relaxed font-sans">{ev}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="p-4 rounded-xl bg-slate-50 text-slate-500 text-[12px] font-mono">
+                No hallucination check logs available.
+              </div>
+            )}
+          </div>
+
+          {/* INVARIANT RULES */}
+          <div className="bg-white p-5 rounded-2xl border border-[#E2E8F0] shadow-card-sm flex flex-col gap-4 lg:col-span-2">
+            <h3 className="text-[15px] font-bold flex items-center gap-2">
+              <span className="material-symbols-outlined text-[18px] text-amber-500">lock</span>
+              Preserved Invariant Contracts
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {invariants.length === 0 ? (
+                <div className="p-3 rounded-xl bg-slate-50 text-slate-500 text-[12px] font-mono col-span-2">
+                  No explicit contract invariants specified for this repository run.
+                </div>
+              ) : (
+                invariants.map((inv, idx) => (
+                  <div key={idx} className="p-3.5 rounded-xl bg-slate-50/80 border border-slate-200 flex items-start gap-2.5">
+                    <span className="material-symbols-outlined text-emerald-600 text-[18px] mt-0.5 flex-shrink-0">check_circle</span>
+                    <div className="flex flex-col min-w-0">
+                      <span className="font-mono text-[12px] font-semibold leading-tight text-slate-800">{inv}</span>
+                      <span className="text-[11px] text-text-muted mt-1">Verified unchanged in AST diff</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -35,6 +35,10 @@ class RepoManager:
         return bool(SAFE_URL_PATTERN.match(url))
 
     def clone_repository(self, url: str, run_id: str) -> RepositoryInfo:
+        # Auto-normalize: append .git if missing
+        if url and not url.endswith('.git') and ('github.com' in url or 'gitlab.com' in url):
+            url = url + '.git'
+        
         if not self.validate_url(url):
             raise ValueError("Invalid or unsafe repository URL")
 
@@ -50,6 +54,7 @@ class RepoManager:
                 check=True,
                 capture_output=True,
                 text=True,
+                timeout=30,  # Add timeout so it doesn't hang forever
             )
 
             branch_proc = subprocess.run(
@@ -78,6 +83,10 @@ class RepoManager:
                 commit_sha=commit_sha,
                 workspace_path=workspace_path,
             )
+        except subprocess.TimeoutExpired as e:
+            if os.path.exists(workspace_path):
+                shutil.rmtree(workspace_path, ignore_errors=True)
+            raise RuntimeError(f"Git clone timed out after 30 seconds.")
         except subprocess.CalledProcessError as e:
             if os.path.exists(workspace_path):
                 shutil.rmtree(workspace_path, ignore_errors=True)
@@ -88,3 +97,14 @@ class RepoManager:
         workspace_path = os.path.join(self.base_workspace_dir, clean_run_id)
         if os.path.exists(workspace_path):
             shutil.rmtree(workspace_path, ignore_errors=True)
+
+    def clone(self, url: str, run_id: Optional[str] = None) -> str:
+        if not run_id:
+            import uuid
+            run_id = str(uuid.uuid4())
+        repo_info = self.clone_repository(url, run_id)
+        return repo_info.workspace_path
+
+    def cleanup(self, run_id: str):
+        self.cleanup_repository(run_id)
+

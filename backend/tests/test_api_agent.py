@@ -31,3 +31,11 @@ def test_get_run_status_mocked(mock_load):
 def test_get_patch_not_found():
     response = client.get("/api/agent/runs/nonexistent/patch")
     assert response.status_code == 404
+
+
+def test_list_runs():
+    response = client.get("/api/agent/runs")
+    assert response.status_code == 200
+    data = response.json()
+    assert "runs" in data
+    assert isinstance(data["runs"], list)

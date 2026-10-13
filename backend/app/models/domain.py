@@ -99,6 +99,7 @@ class TestExecution(BaseModel):
 
 
 class TestSummary(BaseModel):
+    __test__ = False
     passed: int
     failed: int
     skipped: int

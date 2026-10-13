@@ -14,3 +14,9 @@ venv
 .patchpilot
 tmp
 temp
+.DS_Store
+*.DS_Store
+cache-analyser/
+netsage-ai/
+backend/testing/
+backend/test_clone_tmp/

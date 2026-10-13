@@ -38,6 +38,11 @@ class MasterOrchestrator:
         workspace_path = None
         try:
             workspace_path = self.repo_manager.clone(github_url, run_id)
+            # Write clone artifact immediately so timeline advances
+            save_artifact(run_id, "clone", {
+                "url": github_url,
+                "workspace_path": workspace_path
+            })
 
             framework = self.detector.detect(workspace_path)
             save_artifact(run_id, "framework", framework)
@@ -49,10 +54,16 @@ class MasterOrchestrator:
                 workspace_path, framework, run_id
             )
 
-            contract = await self.contract_agent.analyze(
-                user_request, repo_map, framework
-            )
-            save_artifact(run_id, "contract", contract)
+            try:
+                contract = await self.contract_agent.analyze(
+                    user_request, repo_map, framework, baseline_summary
+                )
+                save_artifact(run_id, "contract", contract)
+            except ValueError as e:
+                save_artifact(run_id, "contract_rejection", {
+                    "reason": str(e).replace("Insufficient evidence: ", "")
+                })
+                raise
 
             files_to_modify = await self.locator_agent.locate_files(contract, repo_map)
 
@@ -162,6 +173,12 @@ class MasterOrchestrator:
             }
 
         except Exception as e:
+            import traceback
+            try:
+                from app.core.storage import BASE_DIR
+                with open(os.path.join(BASE_DIR, run_id, "error.log"), "w") as f:
+                    f.write(traceback.format_exc())
+            except: pass
             return {"run_id": run_id, "status": "FAILED", "error": str(e)}
         finally:
             if workspace_path:

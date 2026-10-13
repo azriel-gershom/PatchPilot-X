@@ -1,193 +1,249 @@
-import { useState } from 'react';
-import { 
-  ShieldCheck, 
-  Activity, 
-  Play, 
-  RefreshCw,
-  GitBranch,
-  ListOrdered,
-  FileCode,
-  Beaker
-} from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import Sidebar from './components/layout/Sidebar';
+import Header from './components/layout/Header';
+import NewEngineeringRun from './components/views/NewEngineeringRun';
 import AgentTimeline from './components/timeline/AgentTimeline';
 import DiffViewer from './components/diff/DiffViewer';
 import TestResults from './components/tests/TestResults';
 import VerificationArena from './components/verification/VerificationArena';
+import RepositoryMapView from './components/views/RepositoryMapView';
+import ChangeContractView from './components/views/ChangeContractView';
+import PlanView from './components/views/PlanView';
+import EvidenceView from './components/views/EvidenceView';
+import RunsHistoryView from './components/views/RunsHistoryView';
+import WorkspaceRepoView from './components/views/WorkspaceRepoView';
+import type { RunItem } from './types';
 import './index.css';
 
-interface RunStatus {
-  run_id: string;
-  status: string;
-  validation?: boolean;
-  reason?: string;
-}
+export type AppTab = 
+  | 'new' 
+  | 'runs' 
+  | 'repo' 
+  | 'timeline' 
+  | 'map' 
+  | 'contract' 
+  | 'plan' 
+  | 'diff' 
+  | 'tests' 
+  | 'arena' 
+  | 'evidence';
 
 export default function App() {
-  const [githubUrl, setGithubUrl] = useState('https://github.com/azriel-gershom/PatchPilot-X');
-  const [requestText, setRequestText] = useState('Fix the divide by zero bug in calculator.py');
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [activeRun, setActiveRun] = useState<RunStatus | null>(null);
-  const [activeTab, setActiveTab] = useState<'arena' | 'timeline' | 'diff' | 'tests'>('arena');
+  const [activeTab, setActiveTab] = useState<AppTab>('new');
+  const [runs, setRuns] = useState<RunItem[]>([]);
+  const [activeRun, setActiveRun] = useState<RunItem | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSync = async () => {
-    setIsSyncing(true);
+  // Fetch runs list from backend
+  const fetchRuns = useCallback(async () => {
     try {
-      await fetch('/api/sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ github_url: githubUrl })
-      });
+      const res = await fetch('/api/agent/runs');
+      if (res.ok) {
+        const data = await res.json();
+        const runList: RunItem[] = data.runs || [];
+        setRuns(runList);
+
+        // If no active run selected yet, pick the most recent one
+        setActiveRun((prev) => {
+          if (!prev && runList.length > 0) {
+            return runList[0];
+          }
+          if (prev) {
+            const updated = runList.find(r => r.run_id === prev.run_id);
+            if (updated) return updated;
+          }
+          return prev;
+        });
+      }
     } catch (err) {
-      console.error(err);
+      console.error('Failed to load runs:', err);
     }
-    setIsSyncing(false);
-  };
+  }, []);
 
-  const handleRunAgent = async () => {
-    setActiveRun(null); // Reset active run on new start
-    setActiveTab('arena'); // Switch back to arena
+  useEffect(() => {
+    fetchRuns();
+  }, [fetchRuns]);
+
+  // Polling for active run status when running or pending
+  useEffect(() => {
+    if (!activeRun || !activeRun.run_id || (activeRun.status !== 'RUNNING' && activeRun.status !== 'PENDING')) {
+      return;
+    }
+
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/agent/runs/${activeRun.run_id}`);
+        if (res.ok) {
+          const data = await res.json();
+          const newStatus = data.status?.status || activeRun.status;
+          
+          if (newStatus !== activeRun.status) {
+            setActiveRun(prev => prev ? { ...prev, status: newStatus } : null);
+            fetchRuns();
+          }
+        }
+      } catch (err) {
+        console.error("Polling error", err);
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [activeRun, fetchRuns]);
+
+  // Handle starting a new agent run
+  const handleRunAgent = async (githubUrl: string, requestText: string) => {
+    setIsSubmitting(true);
     try {
+      let url = githubUrl.trim();
+      if (url.match(/^https:\/\/(github|gitlab)\.com\//) && !url.endsWith('.git')) {
+        url = url + '.git';
+      }
+
       const res = await fetch('/api/agent/run', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ github_url: githubUrl, task: requestText })
+        body: JSON.stringify({ github_url: url, task: requestText })
       });
-      
+
+      if (!res.ok) {
+        throw new Error(`Failed to dispatch run: ${res.statusText}`);
+      }
+
       const data = await res.json();
-      setActiveRun(data); 
+      const newRun: RunItem = {
+        run_id: data.run_id,
+        status: data.status,
+        repository_url: data.repository_url,
+        task: requestText,
+        created_at: data.created_at,
+        has_patch: false,
+      };
+
+      setActiveRun(newRun);
+      setRuns(prev => [newRun, ...prev]);
+      setActiveTab('timeline');
     } catch (err) {
-      console.error(err);
+      console.error('Run dispatch failed:', err);
+      alert('Failed to start engineering run. Please verify the backend is running.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
+  const handleCancelRun = async () => {
+    if (!activeRun || !activeRun.run_id) return;
+    try {
+      const res = await fetch(`/api/agent/runs/${activeRun.run_id}/cancel`, {
+        method: 'POST'
+      });
+      if (res.ok) {
+        setActiveRun(prev => prev ? { ...prev, status: 'CANCELLED' } : null);
+        fetchRuns();
+      }
+    } catch (err) {
+      console.error('Cancel run error', err);
+    }
+  };
+
+  const handleSelectRun = (runId: string) => {
+    const selected = runs.find(r => r.run_id === runId);
+    if (selected) {
+      setActiveRun(selected);
+      setActiveTab('timeline');
+    }
+  };
+
+  const handleDispatchRepo = (_url: string) => {
+    setActiveTab('new');
+  };
+
   return (
-    <div className="min-h-screen bg-[#0f172a] text-[#f8fafc] font-sans selection:bg-blue-500/30">
-      {/* Header */}
-      <header className="glass-panel sticky top-0 z-50 border-b border-white/10 px-6 py-4 flex justify-between items-center">
-        <div className="flex items-center gap-3">
-          <ShieldCheck className="w-8 h-8 text-blue-400" />
-          <h1 className="text-2xl font-bold tracking-tight">PatchPilot <span className="gradient-text">X</span></h1>
-        </div>
-        <div className="flex items-center gap-4 text-sm font-medium text-slate-400">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-            Verification Arena Online
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-surface-canvas text-text-primary font-sans">
+      <Sidebar 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab} 
+        activeRun={activeRun}
+        runsCount={runs.length}
+      />
 
-      <main className="max-w-7xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
-        
-        {/* Left Column: Controls */}
-        <div className="lg:col-span-4 flex flex-col gap-6">
-          <div className="glass-panel rounded-2xl p-6">
-            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <GitBranch className="w-5 h-5 text-blue-400" />
-              Repository Context
-            </h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">GitHub URL</label>
-                <div className="flex gap-2">
-                  <input 
-                    type="text" 
-                    value={githubUrl}
-                    onChange={(e) => setGithubUrl(e.target.value)}
-                    className="flex-1 bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500 transition-colors"
-                    placeholder="https://github.com/..."
-                  />
-                  <button 
-                    onClick={handleSync}
-                    disabled={isSyncing}
-                    className="btn-primary px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 disabled:opacity-50"
-                  >
-                    <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
-                    Sync
-                  </button>
-                </div>
-              </div>
+      <div className="pl-[240px]">
+        {activeTab !== 'new' && (
+          <Header 
+            activeTab={activeTab} 
+            setActiveTab={setActiveTab} 
+            run={activeRun}
+            status={activeRun?.status || 'IDLE'} 
+            onCancelRun={handleCancelRun}
+          />
+        )}
+
+        <main className={`relative min-h-screen bg-surface-canvas ${activeTab !== 'new' ? 'pt-[56px]' : ''}`}>
+          {activeTab === 'new' && (
+            <NewEngineeringRun 
+              onRun={handleRunAgent} 
+              runs={runs}
+              onSelectRun={handleSelectRun}
+              onRefresh={fetchRuns}
+              isLoading={isSubmitting}
+            />
+          )}
+
+          {activeTab === 'runs' && (
+            <RunsHistoryView 
+              runs={runs}
+              onSelectRun={handleSelectRun}
+              onRefresh={fetchRuns}
+            />
+          )}
+
+          {activeTab === 'repo' && (
+            <WorkspaceRepoView 
+              currentRepoUrl={activeRun?.repository_url}
+              onDispatchRepo={handleDispatchRepo}
+            />
+          )}
+
+          {activeTab === 'timeline' && (
+            <div className="w-full max-w-[1600px] mx-auto p-5 lg:p-7">
+              <AgentTimeline runId={activeRun ? activeRun.run_id : null} status={activeRun?.status || 'UNKNOWN'} />
             </div>
-          </div>
+          )}
 
-          <div className="glass-panel rounded-2xl p-6">
-            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <Activity className="w-5 h-5 text-emerald-400" />
-              Mission Briefing
-            </h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Change Request</label>
-                <textarea 
-                  value={requestText}
-                  onChange={(e) => setRequestText(e.target.value)}
-                  className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-emerald-500 transition-colors h-32 resize-none"
-                  placeholder="Describe the bug or feature..."
-                />
-              </div>
-              <button 
-                onClick={handleRunAgent}
-                className="w-full btn-primary px-4 py-3 rounded-lg font-bold text-sm flex items-center justify-center gap-2"
-              >
-                <Play className="w-5 h-5" />
-                Deploy Agent to Blind Test Chamber
-              </button>
+          {activeTab === 'map' && (
+            <RepositoryMapView runId={activeRun ? activeRun.run_id : null} />
+          )}
+
+          {activeTab === 'contract' && (
+            <ChangeContractView runId={activeRun ? activeRun.run_id : null} />
+          )}
+
+          {activeTab === 'plan' && (
+            <PlanView runId={activeRun ? activeRun.run_id : null} />
+          )}
+
+          {activeTab === 'diff' && (
+            <div className="w-full max-w-[1680px] mx-auto p-4 lg:p-6">
+              <DiffViewer runId={activeRun ? activeRun.run_id : null} />
             </div>
-          </div>
-        </div>
+          )}
 
-        {/* Right Column: Execution Logs & Status */}
-        <div className="lg:col-span-8 flex flex-col gap-6">
-          <div className="glass-panel rounded-2xl p-6 flex-1 flex flex-col min-h-[600px]">
-            
-            <div className="flex justify-between items-center mb-6 border-b border-white/5 pb-4">
-              <div className="flex space-x-6">
-                <button 
-                  onClick={() => setActiveTab('arena')}
-                  className={`flex items-center gap-2 font-semibold pb-2 border-b-2 transition-colors ${activeTab === 'arena' ? 'text-amber-400 border-amber-400' : 'text-slate-400 border-transparent hover:text-slate-200'}`}
-                >
-                  <ShieldCheck className="w-5 h-5" />
-                  Arena
-                </button>
-                <button 
-                  onClick={() => setActiveTab('timeline')}
-                  className={`flex items-center gap-2 font-semibold pb-2 border-b-2 transition-colors ${activeTab === 'timeline' ? 'text-purple-400 border-purple-400' : 'text-slate-400 border-transparent hover:text-slate-200'}`}
-                >
-                  <ListOrdered className="w-5 h-5" />
-                  Timeline
-                </button>
-                <button 
-                  onClick={() => setActiveTab('diff')}
-                  className={`flex items-center gap-2 font-semibold pb-2 border-b-2 transition-colors ${activeTab === 'diff' ? 'text-blue-400 border-blue-400' : 'text-slate-400 border-transparent hover:text-slate-200'}`}
-                >
-                  <FileCode className="w-5 h-5" />
-                  Diff Viewer
-                </button>
-                <button 
-                  onClick={() => setActiveTab('tests')}
-                  className={`flex items-center gap-2 font-semibold pb-2 border-b-2 transition-colors ${activeTab === 'tests' ? 'text-emerald-400 border-emerald-400' : 'text-slate-400 border-transparent hover:text-slate-200'}`}
-                >
-                  <Beaker className="w-5 h-5" />
-                  Test Results
-                </button>
-              </div>
-
-              {activeRun && activeRun.status && activeRun.status !== 'PENDING' && (
-                <div className={`px-3 py-1 rounded-full text-xs font-bold border ${activeRun.status === 'COMPLETED_SUCCESS' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'}`}>
-                  {activeRun.status.replace(/_/g, ' ')}
-                </div>
-              )}
+          {activeTab === 'arena' && (
+            <div className="w-full max-w-[1600px] mx-auto p-5 lg:p-7">
+              <VerificationArena runId={activeRun ? activeRun.run_id : null} />
             </div>
-            
-            <div className="flex-1 overflow-y-auto relative p-2">
-              {activeTab === 'arena' && <VerificationArena runId={activeRun ? activeRun.run_id : null} />}
-              {activeTab === 'timeline' && <AgentTimeline runId={activeRun ? activeRun.run_id : null} isActive={!!activeRun} />}
-              {activeTab === 'diff' && <DiffViewer runId={activeRun ? activeRun.run_id : null} />}
-              {activeTab === 'tests' && <TestResults runId={activeRun ? activeRun.run_id : null} />}
-            </div>
-          </div>
-        </div>
+          )}
 
-      </main>
+          {activeTab === 'tests' && (
+            <div className="w-full max-w-[1600px] mx-auto p-5 lg:p-7">
+              <TestResults runId={activeRun ? activeRun.run_id : null} />
+            </div>
+          )}
+
+          {activeTab === 'evidence' && (
+            <EvidenceView runId={activeRun ? activeRun.run_id : null} />
+          )}
+        </main>
+      </div>
     </div>
   );
 }

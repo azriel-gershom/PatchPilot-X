@@ -22,14 +22,17 @@ class FileLocatorAgent:
             "Select the absolute minimal set of files required."
         )
 
+        # Cap to reduce token usage and latency
+        top_sources = repo_map.source_files[:30]
+        top_functions = repo_map.functions[:50]
+
         prompt = (
             f"Change Contract Goal: {contract.goal}\n"
             f"Must Change: {contract.must_change}\n\n"
-            f"Repository Files:\n"
-            f"Source Files: {repo_map.source_files}\n"
-            f"Config Files: {repo_map.config_files}\n"
-            f"Functions: {repo_map.functions}\n"
-            f"Classes: {repo_map.classes}\n\n"
+            f"Repository Files (top 30 source files):\n"
+            f"Source Files: {top_sources}\n"
+            f"Config Files: {repo_map.config_files[:15]}\n"
+            f"Functions: {top_functions}\n\n"
             "Return the list of exact file paths to modify."
         )
 

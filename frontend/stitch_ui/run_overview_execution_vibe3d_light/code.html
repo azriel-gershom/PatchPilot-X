@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="web_dashboard" name="shell-type"/>
+<title>PatchPilot X - Run Overview #PP-042</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<style>
+    @layer base {
+      html, body {
+        margin: 0;
+        padding: 0;
+        background-color: #F8FAFC;
+        color: #0F172A;
+        font-family: 'Geist', sans-serif;
+      }
+      body { overscroll-behavior: none; }
+      main > :first-child { margin-top: 0 !important; }
+      main > :last-child { margin-bottom: 0 !important; }
+    }
+    ::-webkit-scrollbar { display: none; }
+  </style>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "surface-canvas": "#F8FAFC",
+            "surface-card": "#FFFFFF",
+            "surface-subtle": "#F1F5F9",
+            "surface-muted": "#E2E8F0",
+            "border-hairline": "#E2E8F0",
+            "border-active": "#CBD5E1",
+            "text-primary": "#0F172A",
+            "text-secondary": "#475569",
+            "text-muted": "#64748B",
+            "brand-emerald": "#10B981",
+            "brand-emerald-dark": "#059669",
+            "brand-emerald-light": "#ECFDF5",
+            "brand-emerald-border": "#A7F3D0",
+            "brand-blue": "#2563EB",
+            "brand-blue-subtle": "#EFF6FF",
+            "brand-amber": "#F59E0B",
+            "brand-amber-subtle": "#FFFBEB",
+            "brand-rose": "#EF4444"
+          },
+          fontFamily: {
+            sans: ['Geist', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace']
+          },
+          boxShadow: {
+            'card-sm': '0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.04)',
+            'card-hover': '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.04)',
+            'terminal': '0 8px 24px -4px rgba(15, 23, 42, 0.12)'
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-[#F8FAFC] text-text-primary antialiased font-sans">
+<!-- SIDEBAR -->
+<aside class="fixed left-0 top-0 h-screen w-[240px] bg-white border-r border-[#E2E8F0] z-40 flex flex-col justify-between overflow-y-auto">
+<div class="flex flex-col">
+<!-- Brand Header -->
+<div class="h-[56px] px-4 border-b border-[#E2E8F0] flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<span class="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 border border-emerald-200 text-brand-emerald">
+<span class="material-symbols-outlined text-[17px]">terminal</span>
+</span>
+<span class="text-[15px] font-semibold tracking-tight text-text-primary">PatchPilot X</span>
+</div>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-slate-100 text-slate-600 border border-slate-200">v1.4</span>
+</div>
+<!-- Active Repository Switcher -->
+<div class="p-3">
+<button class="w-full flex items-center justify-between px-2.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-left hover:bg-slate-100/70 hover:border-slate-300 transition-all shadow-sm" type="button">
+<div class="flex items-center gap-2 min-w-0">
+<span class="material-symbols-outlined text-slate-500 text-[18px]">deployed_code</span>
+<div class="flex flex-col truncate">
+<span class="font-mono text-[11px] font-semibold text-text-primary truncate">PatchPilot-X</span>
+<span class="font-mono text-[10px] text-text-muted flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px] text-emerald-600">fork_right</span>main
+            </span>
+</div>
+</div>
+<span class="material-symbols-outlined text-slate-400 text-[16px]">unfold_more</span>
+</button>
+</div>
+<!-- Workspace Links -->
+<div class="px-3">
+<div class="px-2 pb-1.5 text-[10px] uppercase font-mono tracking-wider font-semibold text-text-muted">Workspace</div>
+<nav class="flex flex-col space-y-0.5">
+<a class="flex items-center px-2.5 py-1.5 rounded-lg text-[13px] text-text-secondary hover:bg-slate-50 hover:text-text-primary transition-colors font-medium" data-path="overview" href="#">
+<span class="material-symbols-outlined text-[17px] mr-2 text-slate-400">grid_view</span>Overview
+        </a>
+<a class="flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[13px] text-text-secondary hover:bg-slate-50 hover:text-text-primary transition-colors font-medium" data-path="runs" href="#">
+<div class="flex items-center">
+<span class="material-symbols-outlined text-[17px] mr-2 text-slate-400">play_circle</span>Runs
+          </div>
+<span class="px-1.5 py-0.5 rounded font-mono text-[10px] bg-slate-100 text-slate-600 font-medium">42</span>
+</a>
+<a class="flex items-center px-2.5 py-1.5 rounded-lg text-[13px] text-text-secondary hover:bg-slate-50 hover:text-text-primary transition-colors font-medium" data-path="repository" href="#">
+<span class="material-symbols-outlined text-[17px] mr-2 text-slate-400">folder</span>Repository
+        </a>
+<a class="flex items-center px-2.5 py-1.5 rounded-lg text-[13px] text-text-secondary hover:bg-slate-50 hover:text-text-primary transition-colors font-medium" data-path="changes" href="#">
+<span class="material-symbols-outlined text-[17px] mr-2 text-slate-400">difference</span>Changes
+        </a>
+<a class="flex items-center px-2.5 py-1.5 rounded-lg text-[13px] text-text-secondary hover:bg-slate-50 hover:text-text-primary transition-colors font-medium" data-path="verification" href="#">
+<span class="material-symbols-outlined text-[17px] mr-2 text-slate-400">verified</span>Verification
+        </a>
+<a class="flex items-center px-2.5 py-1.5 rounded-lg text-[13px] text-text-secondary hover:bg-slate-50 hover:text-text-primary transition-colors font-medium" data-path="history" href="#">
+<span class="material-symbols-outlined text-[17px] mr-2 text-slate-400">history</span>History
+        </a>
+</nav>
+</div>
+<!-- Current Run Section -->
+<div class="px-3 pt-4">
+<div class="px-2 pb-1.5 flex items-center justify-between text-[10px] uppercase font-mono tracking-wider font-semibold text-text-muted">
+<span>Current Run</span>
+<span class="text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">#PP-042</span>
+</div>
+<nav class="flex flex-col space-y-0.5">
+<a aria-current="page" class="flex items-center px-2.5 py-1.5 rounded-lg transition-colors bg-emerald-50/80 text-emerald-800 text-[13px] font-semibold border border-emerald-200/60 shadow-xs" data-path="run-overview" href="#">
+<span class="material-symbols-outlined text-[17px] mr-2 text-emerald-600">insights</span>Run Overview
+        </a>
+<a class="flex items-center px-2.5 py-1.5 rounded-lg text-[13px] text-text-secondary hover:bg-slate-50 hover:text-text-primary transition-colors font-medium" data-path="repository-map" href="#">
+<span class="material-symbols-outlined text-[17px] mr-2 text-slate-400">account_tree</span>Repository Map
+        </a>
+<a class="flex items-center px-2.5 py-1.5 rounded-lg text-[13px] text-text-secondary hover:bg-slate-50 hover:text-text-primary transition-colors font-medium" data-path="change-contract" href="#">
+<span class="material-symbols-outlined text-[17px] mr-2 text-slate-400">contract</span>Change Contract
+        </a>
+<a class="flex items-center px-2.5 py-1.5 rounded-lg text-[13px] text-text-secondary hover:bg-slate-50 hover:text-text-primary transition-colors font-medium" data-path="plan" href="#">
+<span class="material-symbols-outlined text-[17px] mr-2 text-slate-400">alt_route</span>Plan
+        </a>
+<a class="flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[13px] text-text-secondary hover:bg-slate-50 hover:text-text-primary transition-colors font-medium" data-path="diff" href="#">
+<div class="flex items-center">
+<span class="material-symbols-outlined text-[17px] mr-2 text-slate-400">compare_arrows</span>Diff
+          </div>
+<span class="font-mono text-[10px] text-slate-600 font-medium"><span class="text-emerald-600 font-semibold">+31</span> <span class="text-rose-500 font-semibold">-8</span></span>
+</a>
+<a class="flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[13px] text-text-secondary hover:bg-slate-50 hover:text-text-primary transition-colors font-medium" data-path="tests" href="#">
+<div class="flex items-center">
+<span class="material-symbols-outlined text-[17px] mr-2 text-slate-400">task_alt</span>Tests
+          </div>
+<span class="font-mono text-[10px] text-emerald-700 bg-emerald-50 px-1 rounded font-semibold">68/68</span>
+</a>
+<a class="flex items-center px-2.5 py-1.5 rounded-lg text-[13px] text-text-secondary hover:bg-slate-50 hover:text-text-primary transition-colors font-medium" data-path="verification-arena" href="#">
+<span class="material-symbols-outlined text-[17px] mr-2 text-slate-400">shield</span>Verification Arena
+        </a>
+<a class="flex items-center px-2.5 py-1.5 rounded-lg text-[13px] text-text-secondary hover:bg-slate-50 hover:text-text-primary transition-colors font-medium" data-path="evidence" href="#">
+<span class="material-symbols-outlined text-[17px] mr-2 text-slate-400">assignment</span>Evidence
+        </a>
+</nav>
+</div>
+</div>
+<!-- Sidebar Footer -->
+<div class="flex flex-col border-t border-[#E2E8F0] bg-white">
+<div class="p-3 border-b border-[#E2E8F0]/70">
+<button class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-text-secondary hover:text-text-primary hover:bg-slate-100 transition-colors" type="button">
+<span class="flex items-center text-[12px] font-medium"><span class="material-symbols-outlined text-[15px] mr-1.5 text-slate-400">keyboard</span>Command</span>
+<kbd class="px-1.5 py-0.5 rounded font-mono text-[10px] bg-white border border-slate-200 text-slate-500 shadow-xs">⌘K</kbd>
+</button>
+</div>
+<div class="px-3 py-1.5 flex items-center justify-between text-[12px] text-text-secondary">
+<a class="flex items-center px-2 py-1 rounded-md hover:text-text-primary hover:bg-slate-100 transition-colors" data-path="settings" href="#">
+<span class="material-symbols-outlined text-[15px] mr-1 text-slate-400">settings</span>Settings
+      </a>
+<a class="flex items-center px-2 py-1 rounded-md hover:text-text-primary hover:bg-slate-100 transition-colors" data-path="docs" href="#">
+<span class="material-symbols-outlined text-[15px] mr-1 text-slate-400">menu_book</span>Docs
+      </a>
+</div>
+<div class="p-3 border-t border-[#E2E8F0]/70 flex items-center justify-between">
+<div class="flex items-center gap-2.5 truncate">
+<img alt="Profile" class="w-8 h-8 rounded-full object-cover ring-2 ring-emerald-100" src="https://lh3.googleusercontent.com/aida/AEtjO1WSitHK6Snv4pOdFqcJrk8mbyynhXRHPro3ttvlcN38362qzUmCs0vdkfyMre5psy2DTqg1yd9Tnq5Jfw3vsYBJI08DTz3FPFSgIMlEmpXS2JreiemvjLaCKI88nJMaNeAleu3ggeOj6iLFO8RaPpG8lcjWkqXgRuDrONvpBjj-DHHvXxfJ0ccG0QniDI_giBCRpiudvKoH-Ki8R39Ov-tjRR42mx84w-fqX9U3sJkZ"/>
+<div class="flex flex-col truncate">
+<span class="text-[13px] font-semibold text-text-primary truncate leading-tight">Alex Chen</span>
+<span class="text-[11px] text-text-muted truncate leading-tight">Staff Eng</span>
+</div>
+</div>
+<button class="text-slate-400 hover:text-text-primary transition-colors p-1" type="button">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</div>
+</aside>
+<!-- MAIN CONTENT WRAPPER -->
+<div class="pl-[240px]">
+<!-- TOP APP BAR -->
+<header class="fixed top-0 left-[240px] right-0 h-[56px] bg-white/90 backdrop-blur-md border-b border-[#E2E8F0] z-30 flex items-center justify-between px-6">
+<div class="flex items-center gap-2 font-mono text-[13px]">
+<span class="text-text-muted">PatchPilot-X</span>
+<span class="text-slate-300">/</span>
+<span class="text-text-primary font-semibold flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-emerald-600">commit</span>Run #PP-042
+      </span>
+</div>
+<!-- Telemetry Pills in Header -->
+<div class="flex items-center gap-2.5 font-mono text-[11px]">
+<div class="flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-50 border border-slate-200 text-text-secondary font-medium">
+<span class="material-symbols-outlined text-[13px] text-slate-500">fork_right</span>
+<span>main</span>
+</div>
+<div class="flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-50 border border-slate-200 text-text-muted">
+<span>commit</span>
+<span class="text-emerald-700 font-semibold">a82f71c</span>
+</div>
+<div class="flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-50 border border-slate-200 text-text-secondary">
+<span class="material-symbols-outlined text-[13px] text-slate-500">timer</span>
+<span class="font-medium" id="header-timer">02:14</span>
+</div>
+<div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold tracking-wide">
+<span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+<span>RUNNING</span>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex items-center gap-2">
+<button class="h-8 px-3 rounded-lg bg-white border border-slate-200 text-text-secondary hover:text-rose-600 hover:border-rose-200 hover:bg-rose-50/50 transition-colors text-[12px] font-medium flex items-center gap-1.5 shadow-card-sm" type="button">
+<span class="material-symbols-outlined text-[15px]">cancel</span>Cancel Run
+      </button>
+<div class="h-4 w-px bg-slate-200 mx-0.5"></div>
+<button class="h-8 px-2.5 rounded-lg bg-white border border-slate-200 text-text-secondary hover:text-text-primary hover:bg-slate-50 transition-colors font-mono text-[11px] flex items-center gap-1 shadow-card-sm" type="button">
+        Diff <kbd class="text-[9px] text-text-muted font-mono">(D)</kbd>
+</button>
+<button class="h-8 px-2.5 rounded-lg bg-white border border-slate-200 text-text-secondary hover:text-text-primary hover:bg-slate-50 transition-colors font-mono text-[11px] flex items-center gap-1 shadow-card-sm" type="button">
+        Checks <kbd class="text-[9px] text-text-muted font-mono">(T)</kbd>
+</button>
+<button class="h-8 px-2.5 rounded-lg bg-white border border-slate-200 text-text-secondary hover:text-text-primary hover:bg-slate-50 transition-colors font-mono text-[11px] flex items-center gap-1 shadow-card-sm" type="button">
+        Arena <kbd class="text-[9px] text-text-muted font-mono">(V)</kbd>
+</button>
+<img alt="Profile" class="w-8 h-8 rounded-full object-cover ml-1 ring-2 ring-emerald-100" src="https://lh3.googleusercontent.com/aida/AEtjO1WSitHK6Snv4pOdFqcJrk8mbyynhXRHPro3ttvlcN38362qzUmCs0vdkfyMre5psy2DTqg1yd9Tnq5Jfw3vsYBJI08DTz3FPFSgIMlEmpXS2JreiemvjLaCKI88nJMaNeAleu3ggeOj6iLFO8RaPpG8lcjWkqXgRuDrONvpBjj-DHHvXxfJ0ccG0QniDI_giBCRpiudvKoH-Ki8R39Ov-tjRR42mx84w-fqX9U3sJkZ"/>
+</div>
+</header>
+<!-- MAIN CANVAS -->
+<main class="relative pt-[56px] min-h-screen bg-[#F8FAFC]">
+<div class="w-full max-w-[1600px] mx-auto p-5 lg:p-7 flex flex-col gap-5">
+<!-- 1. MISSION HEADER STRIP (Vibe3D Style: Crisp White Card with Subtle Drop) -->
+<div class="bg-white rounded-2xl p-5 border border-[#E2E8F0] shadow-card-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+<div class="min-w-0 flex flex-col gap-1.5">
+<div class="flex items-center gap-3 flex-wrap">
+<span class="text-[22px] text-text-primary font-bold tracking-tight">Run #PP-042</span>
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-mono text-[12px] font-semibold">
+<span class="material-symbols-outlined text-[14px] animate-spin text-emerald-600">progress_activity</span>
+              RUNNING
+            </span>
+<span class="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200 text-[11px] font-mono">
+              FastAPI Auto-Patch
+            </span>
+</div>
+<p class="text-[14px] text-text-secondary font-medium leading-relaxed">
+            “Add case-insensitive username search while preserving existing ID lookup.”
+          </p>
+<div class="flex items-center gap-3 text-text-muted text-[12px] flex-wrap mt-0.5 font-mono">
+<span>Repo: <span class="text-text-primary font-semibold">PatchPilot-X</span></span>
+<span>·</span>
+<span>Branch: <span class="text-text-primary font-semibold">main</span></span>
+<span>·</span>
+<span>Commit: <span class="text-emerald-700 font-semibold">a82f71c</span></span>
+<span>·</span>
+<span>Elapsed: <span class="text-text-primary font-semibold" id="elapsed-time-str">02:14</span></span>
+</div>
+</div>
+<div class="flex items-center gap-2.5 flex-shrink-0">
+<button class="h-9 px-3.5 rounded-xl bg-white hover:bg-slate-50 text-text-primary font-medium text-[13px] flex items-center gap-2 transition-all border border-[#E2E8F0] shadow-card-sm" type="button">
+<span class="material-symbols-outlined text-[17px] text-emerald-600">difference</span>
+<span>Open Diff</span>
+<span class="font-mono text-[11px] text-emerald-600 font-semibold">+31</span>
+<span class="font-mono text-[11px] text-rose-500 font-semibold">-8</span>
+</button>
+<button class="h-9 px-3.5 rounded-xl bg-white hover:bg-slate-50 text-text-primary font-medium text-[13px] flex items-center gap-1.5 transition-all border border-[#E2E8F0] shadow-card-sm" type="button">
+<span class="material-symbols-outlined text-[17px] text-brand-blue">contract</span>
+<span>Change Contract</span>
+</button>
+<button class="h-9 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-[13px] flex items-center gap-1.5 transition-all shadow-sm shadow-emerald-500/20" type="button">
+<span class="material-symbols-outlined text-[17px]">terminal</span>
+<span>Live Logs</span>
+</button>
+</div>
+</div>
+<!-- 2. METRIC STRIP (Modern Horizontal Summary Grid) -->
+<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+<!-- Metric 1 -->
+<div class="bg-white p-3.5 rounded-xl border border-[#E2E8F0] shadow-card-sm flex flex-col justify-between">
+<span class="text-[12px] font-medium text-text-muted">Files scanned</span>
+<div class="flex items-baseline gap-1.5 mt-1">
+<span class="font-mono text-[20px] font-bold text-text-primary tracking-tight">1,284</span>
+<span class="font-mono text-[11px] text-text-muted">src</span>
+</div>
+</div>
+<!-- Metric 2 -->
+<div class="bg-white p-3.5 rounded-xl border border-[#E2E8F0] shadow-card-sm flex flex-col justify-between">
+<span class="text-[12px] font-medium text-text-muted">Symbols indexed</span>
+<div class="flex items-baseline gap-1.5 mt-1">
+<span class="font-mono text-[20px] font-bold text-text-primary tracking-tight">4,729</span>
+<span class="font-mono text-[11px] text-text-muted">ast</span>
+</div>
+</div>
+<!-- Metric 3 -->
+<div class="bg-white p-3.5 rounded-xl border border-emerald-200 bg-emerald-50/20 shadow-card-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="text-[12px] font-medium text-emerald-800">Tests</span>
+<span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+</div>
+<div class="flex items-baseline gap-1 mt-1">
+<span class="font-mono text-[19px] font-bold text-emerald-600 tracking-tight">68 passed</span>
+</div>
+</div>
+<!-- Metric 4 -->
+<div class="bg-white p-3.5 rounded-xl border border-[#E2E8F0] shadow-card-sm flex flex-col justify-between">
+<span class="text-[12px] font-medium text-text-muted">Candidate files</span>
+<div class="flex items-baseline gap-1.5 mt-1">
+<span class="font-mono text-[20px] font-bold text-text-primary tracking-tight">7</span>
+<span class="font-mono text-[11px] text-text-muted">ranked</span>
+</div>
+</div>
+<!-- Metric 5 -->
+<div class="bg-white p-3.5 rounded-xl border border-[#E2E8F0] shadow-card-sm flex flex-col justify-between">
+<span class="text-[12px] font-medium text-text-muted">Files changed</span>
+<div class="flex items-baseline gap-1.5 mt-1">
+<span class="font-mono text-[20px] font-bold text-emerald-600 tracking-tight">2</span>
+<span class="font-mono text-[11px] text-text-secondary">files</span>
+</div>
+</div>
+<!-- Metric 6 -->
+<div class="bg-white p-3.5 rounded-xl border border-[#E2E8F0] shadow-card-sm flex flex-col justify-between">
+<span class="text-[12px] font-medium text-text-muted">Elapsed</span>
+<div class="flex items-baseline gap-1.5 mt-1">
+<span class="font-mono text-[20px] font-bold text-text-primary tracking-tight" id="elapsed-timer">02:14</span>
+<span class="font-mono text-[11px] text-text-muted">s</span>
+</div>
+</div>
+</div>
+<!-- 3. PRIMARY COCKPIT WORKSPACE (8 / 4 Grid) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+<!-- LEFT PANEL: EXECUTION PIPELINE & STDOUT (8 Cols) -->
+<div class="lg:col-span-8 flex flex-col gap-4">
+<!-- Main Pipeline Card -->
+<div class="bg-white p-5 rounded-2xl border border-[#E2E8F0] shadow-card-sm flex flex-col gap-4">
+<!-- Pipeline Card Header -->
+<div class="flex items-center justify-between pb-1 border-b border-[#E2E8F0]">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px] text-emerald-600">account_tree</span>
+<span class="text-[15px] text-text-primary font-bold tracking-tight">Agent Execution Pipeline</span>
+</div>
+<div class="flex items-center gap-2.5">
+<span class="font-mono text-[11px] text-text-secondary px-2.5 py-1 bg-slate-100 rounded-lg border border-slate-200">Auto-scroll: ON</span>
+<span class="font-mono text-[11px] text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 font-semibold">Step 8 of 9</span>
+</div>
+</div>
+<!-- CURRENT STAGE PROMINENT HIGHLIGHT BANNER (Vibe3D Style: Soft Emerald tint with clear callout) -->
+<div class="p-4 rounded-xl bg-gradient-to-r from-emerald-50/90 to-emerald-50/40 border border-emerald-200/90 flex items-start gap-3.5 shadow-sm">
+<div class="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-600 text-white flex-shrink-0 mt-0.5 shadow-xs">
+<span class="material-symbols-outlined text-[17px] animate-spin">progress_activity</span>
+</div>
+<div class="flex-1 min-w-0 flex flex-col">
+<div class="flex items-center justify-between gap-2 flex-wrap">
+<div class="flex items-center gap-2">
+<span class="text-[14px] text-emerald-950 font-bold">CURRENT: Step 8 — Applying Patch &amp; Running Verification</span>
+<span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold uppercase bg-emerald-200/60 text-emerald-800">In Sandbox</span>
+</div>
+<span class="font-mono text-[12px] px-2.5 py-1 rounded-lg bg-white border border-emerald-200 text-emerald-700 font-semibold shadow-xs">42s elapsed</span>
+</div>
+<div class="flex items-center gap-2 mt-2">
+<div class="flex-1 bg-emerald-200/60 rounded-full h-2 overflow-hidden">
+<div class="bg-emerald-600 h-full rounded-full transition-all duration-500" style="width: 61.7%"></div>
+</div>
+<span class="text-[11px] font-mono text-emerald-800 font-semibold whitespace-nowrap">42 / 68 tests (61%)</span>
+</div>
+<span class="text-[12px] text-emerald-800 font-medium mt-1">
+                  0 regressions detected · Behavioral snapshot verified against baseline
+                </span>
+</div>
+</div>
+<!-- Execution Step Rows -->
+<div class="flex flex-col gap-1.5">
+<!-- Step 1 -->
+<div class="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-slate-50/80 hover:bg-slate-100/70 border border-slate-200/60 transition-colors text-[13px]">
+<div class="flex items-center gap-2.5 min-w-0 truncate">
+<span class="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 flex-shrink-0">
+<span class="material-symbols-outlined text-[14px] font-bold">check</span>
+</span>
+<span class="font-semibold text-text-primary">Repository cloned</span>
+<span class="text-slate-300">·</span>
+<span class="font-mono text-[12px] text-text-secondary truncate">SHA 7a82f71c from PatchPilot-X</span>
+</div>
+<span class="font-mono text-[12px] text-text-muted font-medium flex-shrink-0 ml-2">1.3s</span>
+</div>
+<!-- Step 2 -->
+<div class="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-slate-50/80 hover:bg-slate-100/70 border border-slate-200/60 transition-colors text-[13px]">
+<div class="flex items-center gap-2.5 min-w-0 truncate">
+<span class="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 flex-shrink-0">
+<span class="material-symbols-outlined text-[14px] font-bold">check</span>
+</span>
+<span class="font-semibold text-text-primary">Framework detected</span>
+<span class="text-slate-300">·</span>
+<span class="font-mono text-[12px] text-text-secondary truncate">Python · FastAPI · pytest · SQLAlchemy</span>
+</div>
+<span class="font-mono text-[12px] text-text-muted font-medium flex-shrink-0 ml-2">0.4s</span>
+</div>
+<!-- Step 3 -->
+<div class="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-slate-50/80 hover:bg-slate-100/70 border border-slate-200/60 transition-colors text-[13px]">
+<div class="flex items-center gap-2.5 min-w-0 truncate">
+<span class="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 flex-shrink-0">
+<span class="material-symbols-outlined text-[14px] font-bold">check</span>
+</span>
+<span class="font-semibold text-text-primary">Repository mapped</span>
+<span class="text-slate-300">·</span>
+<span class="font-mono text-[12px] text-text-secondary truncate">1,284 files · 4,729 symbols</span>
+</div>
+<span class="font-mono text-[12px] text-text-muted font-medium flex-shrink-0 ml-2">3.8s</span>
+</div>
+<!-- Step 4 -->
+<div class="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-slate-50/80 hover:bg-slate-100/70 border border-slate-200/60 transition-colors text-[13px]">
+<div class="flex items-center gap-2.5 min-w-0 truncate">
+<span class="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 flex-shrink-0">
+<span class="material-symbols-outlined text-[14px] font-bold">check</span>
+</span>
+<span class="font-semibold text-text-primary">Baseline established</span>
+<span class="text-slate-300">·</span>
+<span class="font-mono text-[12px] text-emerald-700 font-medium">68 passed · 0 failed</span>
+</div>
+<span class="font-mono text-[12px] text-text-muted font-medium flex-shrink-0 ml-2">8.2s</span>
+</div>
+<!-- Step 5 -->
+<div class="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-slate-50/80 hover:bg-slate-100/70 border border-slate-200/60 transition-colors text-[13px]">
+<div class="flex items-center gap-2.5 min-w-0 truncate">
+<span class="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 flex-shrink-0">
+<span class="material-symbols-outlined text-[14px] font-bold">check</span>
+</span>
+<span class="font-semibold text-text-primary">Behavioral Twin captured</span>
+<span class="text-slate-300">·</span>
+<span class="font-mono text-[12px] text-text-secondary truncate">22 routes · 147 public symbols</span>
+</div>
+<span class="font-mono text-[12px] text-text-muted font-medium flex-shrink-0 ml-2">4.1s</span>
+</div>
+<!-- Step 6 -->
+<div class="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-slate-50/80 hover:bg-slate-100/70 border border-slate-200/60 transition-colors text-[13px]">
+<div class="flex items-center gap-2.5 min-w-0 truncate">
+<span class="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 flex-shrink-0">
+<span class="material-symbols-outlined text-[14px] font-bold">check</span>
+</span>
+<span class="font-semibold text-text-primary">Change Contract generated</span>
+<span class="text-slate-300">·</span>
+<span class="font-mono text-[12px] text-text-secondary truncate">4 invariants locked · 6 criteria synthesized</span>
+</div>
+<span class="font-mono text-[12px] text-text-muted font-medium flex-shrink-0 ml-2">1.2s</span>
+</div>
+<!-- Step 7 -->
+<div class="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-slate-50/80 hover:bg-slate-100/70 border border-slate-200/60 transition-colors text-[13px]">
+<div class="flex items-center gap-2.5 min-w-0 truncate">
+<span class="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 flex-shrink-0">
+<span class="material-symbols-outlined text-[14px] font-bold">check</span>
+</span>
+<span class="font-semibold text-text-primary">Blind validation prepared</span>
+<span class="text-slate-300">·</span>
+<span class="font-mono text-[12px] text-text-secondary truncate">8 adversarial scenarios queued</span>
+</div>
+<span class="font-mono text-[12px] text-text-muted font-medium flex-shrink-0 ml-2">2.0s</span>
+</div>
+<!-- Step 8 (Running Active Row) -->
+<div class="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-emerald-50/90 border border-emerald-300 text-[13px] shadow-xs">
+<div class="flex items-center gap-2.5 min-w-0 truncate">
+<span class="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600 text-white flex-shrink-0">
+<span class="material-symbols-outlined text-[14px] animate-spin">progress_activity</span>
+</span>
+<span class="font-bold text-emerald-900">Applying patch &amp; verifying</span>
+<span class="text-emerald-400">·</span>
+<span class="font-mono text-[12px] text-emerald-800 truncate">Active execution in sandbox</span>
+</div>
+<span class="font-mono text-[12px] text-emerald-700 font-bold flex-shrink-0 ml-2">42s</span>
+</div>
+<!-- Step 9 (Pending) -->
+<div class="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-slate-50/40 border border-dashed border-slate-200 text-[13px] text-slate-400">
+<div class="flex items-center gap-2.5 min-w-0 truncate">
+<span class="flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-slate-400 flex-shrink-0">
+<span class="material-symbols-outlined text-[14px]">radio_button_unchecked</span>
+</span>
+<span class="font-medium text-slate-500">Evidence Gate &amp; Acceptance Verdict</span>
+</div>
+<span class="font-mono text-[12px] text-slate-400 flex-shrink-0 ml-2">Pending</span>
+</div>
+</div>
+<!-- TERMINAL EMULATOR (High contrast, crisp embedded dark slate studio runner) -->
+<div class="mt-2 bg-[#0F172A] rounded-xl border border-slate-800 shadow-terminal overflow-hidden">
+<!-- Terminal Bar -->
+<div class="px-4 py-3 bg-[#1E293B] border-b border-slate-800 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="flex items-center gap-1.5">
+<span class="w-3 h-3 rounded-full bg-rose-500/80 inline-block"></span>
+<span class="w-3 h-3 rounded-full bg-amber-500/80 inline-block"></span>
+<span class="w-3 h-3 rounded-full bg-emerald-500/80 inline-block"></span>
+</div>
+<span class="ml-2 font-mono text-[11px] font-semibold tracking-wider text-slate-300">TERMINAL EMULATOR #PP-042-STDOUT</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+<span class="text-slate-400 font-mono text-[11px]">pty/sandbox-isolated</span>
+</div>
+</div>
+<!-- Terminal Lines -->
+<div class="p-4 font-mono text-[12px] leading-relaxed text-slate-200 flex flex-col gap-2 select-text">
+<div class="flex items-baseline gap-2">
+<span class="text-slate-500 select-none">02:01.12</span>
+<span class="text-cyan-400 font-semibold">[runner]</span>
+<span class="text-slate-300">Applying AST diff targeting candidate modules...</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="text-slate-500 select-none">02:03.44</span>
+<span class="text-emerald-400 font-semibold">[stdout]</span>
+<span>patching <span class="text-white font-medium">backend/app/services/user_service.py</span> (<span class="text-emerald-400 font-semibold">+18</span> <span class="text-rose-400 font-semibold">-4</span>)... <span class="text-emerald-400 font-bold">OK</span></span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="text-slate-500 select-none">02:05.10</span>
+<span class="text-emerald-400 font-semibold">[stdout]</span>
+<span>patching <span class="text-white font-medium">backend/app/api/users.py</span> (<span class="text-emerald-400 font-semibold">+13</span> <span class="text-rose-400 font-semibold">-4</span>)... <span class="text-emerald-400 font-bold">OK</span></span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="text-slate-500 select-none">02:08.31</span>
+<span class="text-amber-400 font-semibold">[exec]</span>
+<code class="text-emerald-300 bg-slate-900/90 px-2 py-0.5 rounded border border-slate-700/60 font-mono text-[11px]">pytest tests/test_users.py -k "test_username" -v --tb=short</code>
+</div>
+<!-- Test Execution Sub-Block -->
+<div class="p-3 rounded-lg bg-[#090D16] border border-slate-800 text-[11px] font-mono flex flex-col gap-1.5 my-1 text-slate-300">
+<div class="flex items-center justify-between">
+<span class="text-slate-400">tests/test_users.py::test_username_exact_match</span>
+<span class="text-emerald-400 font-semibold">PASSED [ 12%]</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-slate-400">tests/test_users.py::test_username_case_insensitive_upper</span>
+<span class="text-emerald-400 font-semibold">PASSED [ 25%]</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-slate-400">tests/test_users.py::test_username_case_insensitive_mixed</span>
+<span class="text-emerald-400 font-semibold">PASSED [ 37%]</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-slate-400">tests/test_users.py::test_username_whitespace_normalization</span>
+<span class="text-emerald-400 font-semibold">PASSED [ 50%]</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-slate-400">tests/test_users.py::test_lookup_by_id_unchanged</span>
+<span class="text-emerald-400 font-semibold">PASSED [ 62%]</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-slate-400">tests/test_users.py::test_user_create_duplicate_conflict</span>
+<span class="text-emerald-400 font-semibold">PASSED [ 75%]</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-slate-400">tests/test_users.py::test_user_payload_schema_integrity</span>
+<span class="text-emerald-400 font-semibold">PASSED [ 87%]</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-slate-400">tests/test_users.py::test_adversarial_unicode_username</span>
+<span class="text-emerald-400 font-semibold">PASSED [100%]</span>
+</div>
+<div class="mt-1 pt-2 border-t border-slate-800 flex items-center justify-between text-emerald-400 font-semibold">
+<span>✓ 8 passed in 0.42s (Isolated test harness)</span>
+<span class="text-slate-400 font-normal">coverage: 94.2%</span>
+</div>
+</div>
+<div class="flex items-baseline gap-2 text-emerald-400 animate-pulse">
+<span class="text-slate-500 select-none">02:14.02</span>
+<span class="text-cyan-400 font-semibold">[arena]</span>
+<span>Synthesizing differential snapshot &amp; preparing Gate Verdict...</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- RIGHT PANEL: INSPECTOR & ACTIVE STATE (4 Cols) -->
+<div class="lg:col-span-4 flex flex-col gap-4">
+<!-- 1. Performance Differential Summary Card -->
+<div class="bg-white p-4 rounded-2xl border border-[#E2E8F0] shadow-card-sm flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-600">
+<span class="material-symbols-outlined text-[20px]">speed</span>
+</span>
+<div class="flex flex-col min-w-0">
+<span class="text-[13px] font-bold text-text-primary">Performance Differential</span>
+<span class="text-[12px] text-text-secondary font-mono truncate">1.89ms (Δ +0.05ms)</span>
+</div>
+</div>
+<span class="font-mono text-[11px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full font-semibold whitespace-nowrap">
+              Zero regression
+            </span>
+</div>
+<!-- 2. Target Repository & Scope Card -->
+<div class="bg-white p-5 rounded-2xl border border-[#E2E8F0] shadow-card-sm flex flex-col gap-3.5">
+<div class="flex items-center justify-between">
+<span class="text-[11px] font-mono uppercase tracking-wider font-semibold text-text-muted">Target Scope</span>
+<span class="font-mono text-[11px] px-2.5 py-0.5 bg-slate-100 rounded-lg text-slate-700 border border-slate-200 font-medium">FastAPI / Py3.11</span>
+</div>
+<div class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200">
+<span class="material-symbols-outlined text-slate-500 text-[22px]">folder_managed</span>
+<div class="flex flex-col min-w-0">
+<span class="font-mono text-[12px] text-text-primary font-bold truncate">azriel-gershom/PatchPilot-X</span>
+<span class="font-mono text-[11px] text-text-muted flex items-center gap-1.5 mt-0.5">
+<span class="material-symbols-outlined text-[13px] text-emerald-600">fork_right</span>
+                  branch: <span class="text-text-primary font-semibold">main</span>
+<span>•</span>
+                  ref: <span class="text-emerald-700 font-semibold">a82f71c</span>
+</span>
+</div>
+</div>
+<div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex flex-col gap-1">
+<span class="text-[10px] font-mono uppercase tracking-wider font-semibold text-text-muted">Natural Language Spec</span>
+<p class="text-[13px] text-text-secondary italic leading-relaxed">
+                “Add case-insensitive username search while preserving existing user creation and ID lookup workflows.”
+              </p>
+</div>
+</div>
+<!-- 3. Active Invariant Rules Card -->
+<div class="bg-white p-5 rounded-2xl border border-[#E2E8F0] shadow-card-sm flex flex-col gap-3.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-amber-500">shield</span>
+<span class="text-[14px] text-text-primary font-bold">Active Invariant Rules</span>
+</div>
+<span class="font-mono text-[11px] text-amber-700 px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200 font-semibold">3 Enforced</span>
+</div>
+<div class="flex flex-col gap-2.5">
+<div class="p-3 rounded-xl bg-slate-50/80 border border-slate-200 flex items-start gap-2.5">
+<span class="material-symbols-outlined text-emerald-600 text-[18px] mt-0.5 flex-shrink-0">lock</span>
+<div class="flex flex-col min-w-0">
+<span class="font-mono text-[12px] text-text-primary font-semibold leading-tight">DO NOT alter GET /users/{id} response format</span>
+<span class="text-[11px] text-text-muted mt-1">Assert strict JSON schema match on downstream consumers</span>
+</div>
+</div>
+<div class="p-3 rounded-xl bg-slate-50/80 border border-slate-200 flex items-start gap-2.5">
+<span class="material-symbols-outlined text-emerald-600 text-[18px] mt-0.5 flex-shrink-0">lock</span>
+<div class="flex flex-col min-w-0">
+<span class="font-mono text-[12px] text-text-primary font-semibold leading-tight">DO NOT modify password hashing routines</span>
+<span class="text-[11px] text-text-muted mt-1">bcrypt &amp; argon2 routines marked cryptographically immutable</span>
+</div>
+</div>
+<div class="p-3 rounded-xl bg-slate-50/80 border border-slate-200 flex items-start gap-2.5">
+<span class="material-symbols-outlined text-emerald-600 text-[18px] mt-0.5 flex-shrink-0">lock</span>
+<div class="flex flex-col min-w-0">
+<span class="font-mono text-[12px] text-text-primary font-semibold leading-tight">PRESERVE 68 existing passing tests</span>
+<span class="text-[11px] text-text-muted mt-1">Zero baseline regressions allowed in test harness</span>
+</div>
+</div>
+</div>
+</div>
+<!-- 4. Candidate Files Card -->
+<div class="bg-white p-5 rounded-2xl border border-[#E2E8F0] shadow-card-sm flex flex-col gap-3.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-brand-blue">description</span>
+<span class="text-[14px] text-text-primary font-bold">Candidate Files</span>
+</div>
+<span class="font-mono text-[11px] text-text-muted font-medium">3 of 7 active</span>
+</div>
+<div class="flex flex-col gap-2">
+<!-- Candidate File 1 -->
+<div class="p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100/80 transition-colors flex items-center justify-between gap-2 border border-slate-200">
+<div class="flex items-center gap-2.5 min-w-0">
+<span class="material-symbols-outlined text-emerald-600 text-[18px] flex-shrink-0">edit_document</span>
+<div class="flex flex-col min-w-0">
+<span class="font-mono text-[12px] text-text-primary truncate font-semibold">user_service.py</span>
+<span class="text-[11px] text-emerald-700 font-medium">
+                      High Relevance • Modified (+18 -4)
+                    </span>
+</div>
+</div>
+<span class="font-mono text-[10px] px-2 py-0.5 rounded-md bg-emerald-100/80 text-emerald-800 border border-emerald-200 font-bold flex-shrink-0">DIFF</span>
+</div>
+<!-- Candidate File 2 -->
+<div class="p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100/80 transition-colors flex items-center justify-between gap-2 border border-slate-200">
+<div class="flex items-center gap-2.5 min-w-0">
+<span class="material-symbols-outlined text-emerald-600 text-[18px] flex-shrink-0">edit_document</span>
+<div class="flex flex-col min-w-0">
+<span class="font-mono text-[12px] text-text-primary truncate font-semibold">api/users.py</span>
+<span class="text-[11px] text-emerald-700 font-medium">
+                      Medium Relevance • Modified (+13 -4)
+                    </span>
+</div>
+</div>
+<span class="font-mono text-[10px] px-2 py-0.5 rounded-md bg-emerald-100/80 text-emerald-800 border border-emerald-200 font-bold flex-shrink-0">DIFF</span>
+</div>
+<!-- Candidate File 3 -->
+<div class="p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100/80 transition-colors flex items-center justify-between gap-2 border border-slate-200">
+<div class="flex items-center gap-2.5 min-w-0">
+<span class="material-symbols-outlined text-slate-400 text-[18px] flex-shrink-0">flaky</span>
+<div class="flex flex-col min-w-0">
+<span class="font-mono text-[12px] text-text-primary truncate font-semibold">test_users.py</span>
+<span class="text-[11px] text-text-muted truncate">
+                      Target Test Harness (8 assertions)
+                    </span>
+</div>
+</div>
+<span class="font-mono text-[10px] px-2 py-0.5 rounded-md bg-slate-200 text-slate-700 font-bold flex-shrink-0">TEST</span>
+</div>
+</div>
+</div>
+<!-- 5. Quick Keyboard Shortcuts Card -->
+<div class="bg-white p-3.5 rounded-xl flex items-center justify-between text-text-secondary font-mono text-[11px] border border-[#E2E8F0] shadow-card-sm">
+<span class="flex items-center gap-1.5 font-sans font-medium text-text-muted">
+<span class="material-symbols-outlined text-[15px] text-slate-400">keyboard</span>
+<span>Shortcuts</span>
+</span>
+<div class="flex items-center gap-2">
+<div class="flex items-center gap-1">
+<kbd class="px-1.5 py-0.5 rounded bg-slate-100 font-mono text-[10px] text-text-primary border border-slate-200 font-medium">D</kbd>
+<span class="text-text-muted text-[10px]">Diff</span>
+</div>
+<div class="flex items-center gap-1">
+<kbd class="px-1.5 py-0.5 rounded bg-slate-100 font-mono text-[10px] text-text-primary border border-slate-200 font-medium">T</kbd>
+<span class="text-text-muted text-[10px]">Tests</span>
+</div>
+<div class="flex items-center gap-1">
+<kbd class="px-1.5 py-0.5 rounded bg-slate-100 font-mono text-[10px] text-text-primary border border-slate-200 font-medium">L</kbd>
+<span class="text-text-muted text-[10px]">Logs</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<script>
+  (function initLiveTimer() {
+    let seconds = 134; // 02:14 in seconds
+    const timerEl = document.getElementById('elapsed-timer');
+    const headerTimerEl = document.getElementById('header-timer');
+    const elapsedStrEl = document.getElementById('elapsed-time-str');
+
+    setInterval(() => {
+      seconds++;
+      const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+      const s = (seconds % 60).toString().padStart(2, '0');
+      const formatted = `${m}:${s}`;
+      if (timerEl) timerEl.textContent = formatted;
+      if (headerTimerEl) headerTimerEl.textContent = formatted;
+      if (elapsedStrEl) elapsedStrEl.textContent = formatted;
+    }, 1000);
+  })();
+</script>
+</body></html>

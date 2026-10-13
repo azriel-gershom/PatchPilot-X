@@ -1,7 +1,9 @@
 import datetime
 import os
 import shlex
+import shutil
 import subprocess
+import sys
 import time
 
 from app.models.domain import TestExecution
@@ -9,6 +11,7 @@ from app.models.domain import TestExecution
 ALLOWED_PREFIXES = [
     "pytest",
     "python -m pytest",
+    "python3 -m pytest",
     "npm test",
     "npm run test",
     "npm run build",
@@ -22,6 +25,7 @@ ALLOWED_PREFIXES = [
     "go test",
     "cargo test",
     "python",
+    "python3",
     "node",
 ]
 
@@ -42,7 +46,7 @@ DANGEROUS_TOKENS = [
 
 
 class CommandExecutor:
-    def __init__(self, timeout_seconds: int = 60):
+    def __init__(self, timeout_seconds: int = 30):
         self.timeout = timeout_seconds
 
     def is_safe_command(self, command: str) -> bool:
@@ -72,6 +76,8 @@ class CommandExecutor:
 
         try:
             args = shlex.split(command, posix=(os.name != "nt"))
+            if args and args[0] == "python" and shutil.which("python") is None:
+                args[0] = shutil.which("python3") or sys.executable
             # On Windows, commands like 'npm' need shell=True or '.cmd'.
             # For safety, we enforce shell=False, but allow execution.
             proc = subprocess.run(

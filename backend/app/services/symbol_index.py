@@ -76,6 +76,6 @@ class JavascriptSymbolExtractor:
 def extract_symbols(filepath: str, code: str):
     if filepath.endswith(".py"):
         return PythonSymbolExtractor().extract(code, filepath)
-    elif filepath.endswith((".js", ".jsx", ".ts", ".tsx")):
+    elif filepath.endswith((".js", ".jsx", ".ts", ".tsx", ".html", ".htm")):
         return JavascriptSymbolExtractor().extract(code)
     return {"functions": [], "classes": [], "imports": [], "routes": []}

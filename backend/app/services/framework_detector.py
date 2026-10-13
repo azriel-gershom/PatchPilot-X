@@ -20,17 +20,30 @@ class FrameworkDetector:
             evidence=evidence,
         )
 
+        def find_manifest(filename: str):
+            root_path = os.path.join(workspace_path, filename)
+            if os.path.exists(root_path):
+                return root_path, ""
+            
+            for d in os.listdir(workspace_path):
+                d_path = os.path.join(workspace_path, d)
+                if os.path.isdir(d_path) and not d.startswith('.'):
+                    file_path = os.path.join(d_path, filename)
+                    if os.path.exists(file_path):
+                        return file_path, d
+            return None, None
+
         # Check Node.js / JS / TS
-        package_json_path = os.path.join(workspace_path, "package.json")
-        if os.path.exists(package_json_path):
+        package_json_path, pkg_dir = find_manifest("package.json")
+        if package_json_path:
             info.language = "JAVASCRIPT"
             info.package_manager = "npm"
-            if os.path.exists(os.path.join(workspace_path, "yarn.lock")):
+            if os.path.exists(os.path.join(os.path.dirname(package_json_path), "yarn.lock")):
                 info.package_manager = "yarn"
-            elif os.path.exists(os.path.join(workspace_path, "pnpm-lock.yaml")):
+            elif os.path.exists(os.path.join(os.path.dirname(package_json_path), "pnpm-lock.yaml")):
                 info.package_manager = "pnpm"
 
-            evidence.append("Found package.json")
+            evidence.append(f"Found package.json in {pkg_dir or 'root'}")
 
             try:
                 with open(package_json_path, "r", encoding="utf-8") as f:
@@ -58,21 +71,23 @@ class FrameworkDetector:
                 pm_cmd = (
                     info.package_manager if info.package_manager != "npm" else "npm run"
                 )
+                prefix_arg = f" --prefix {pkg_dir}" if pkg_dir and info.package_manager == "npm" else (f" --cwd {pkg_dir}" if pkg_dir else "")
+                
                 if "test" in scripts:
                     info.test_command = (
-                        "npm test"
+                        f"npm{prefix_arg} test"
                         if info.package_manager == "npm"
-                        else f"{info.package_manager} test"
+                        else f"{info.package_manager}{prefix_arg} test"
                     )
                     evidence.append(f"Found test script: {scripts['test']}")
                 if "build" in scripts:
-                    info.build_command = f"{pm_cmd} build"
+                    info.build_command = f"{pm_cmd}{prefix_arg} build"
                     evidence.append(f"Found build script")
                 if "lint" in scripts:
-                    info.lint_command = f"{pm_cmd} lint"
+                    info.lint_command = f"{pm_cmd}{prefix_arg} lint"
                     evidence.append(f"Found lint script")
                 if "typecheck" in scripts:
-                    info.typecheck_command = f"{pm_cmd} typecheck"
+                    info.typecheck_command = f"{pm_cmd}{prefix_arg} typecheck"
                     evidence.append(f"Found typecheck script")
 
                 info.confidence = 0.9
@@ -82,23 +97,25 @@ class FrameworkDetector:
                 evidence.append(f"Error parsing package.json: {e}")
 
         # Check Python
-        pyproject_path = os.path.join(workspace_path, "pyproject.toml")
-        reqs_path = os.path.join(workspace_path, "requirements.txt")
-        setup_path = os.path.join(workspace_path, "setup.py")
+        pyproject_path, py_dir1 = find_manifest("pyproject.toml")
+        reqs_path, py_dir2 = find_manifest("requirements.txt")
+        setup_path, py_dir3 = find_manifest("setup.py")
+        
+        py_dir = py_dir1 or py_dir2 or py_dir3
 
         is_python = False
-        if os.path.exists(pyproject_path):
+        if pyproject_path:
             is_python = True
             info.package_manager = "pip"
-            evidence.append("Found pyproject.toml")
-        if os.path.exists(reqs_path):
+            evidence.append(f"Found pyproject.toml in {py_dir1 or 'root'}")
+        if reqs_path:
             is_python = True
             info.package_manager = "pip"
-            evidence.append("Found requirements.txt")
-        if os.path.exists(setup_path):
+            evidence.append(f"Found requirements.txt in {py_dir2 or 'root'}")
+        if setup_path:
             is_python = True
             info.package_manager = "pip"
-            evidence.append("Found setup.py")
+            evidence.append(f"Found setup.py in {py_dir3 or 'root'}")
 
         if is_python:
             info.language = "PYTHON"
@@ -106,7 +123,7 @@ class FrameworkDetector:
 
             content = ""
             for path in [pyproject_path, reqs_path, setup_path]:
-                if os.path.exists(path):
+                if path and os.path.exists(path):
                     try:
                         with open(path, "r", encoding="utf-8") as f:
                             content += f.read() + "\n"
@@ -123,69 +140,91 @@ class FrameworkDetector:
                 info.framework = "Django"
                 evidence.append("Found django reference")
 
+            dir_arg = f" {py_dir}" if py_dir else ""
             if "pytest" in content.lower():
-                info.test_command = "pytest"
+                info.test_command = f"pytest{dir_arg}"
                 evidence.append("Found pytest reference")
             elif "unittest" in content.lower():
-                info.test_command = "python -m unittest discover"
+                info.test_command = f"python -m unittest discover{dir_arg}"
                 evidence.append("Found unittest reference")
 
             info.evidence = evidence
             return info
 
         # Check Java Maven
-        if os.path.exists(os.path.join(workspace_path, "pom.xml")):
+        pom_path, java_dir = find_manifest("pom.xml")
+        if pom_path:
             info.language = "JAVA"
             info.package_manager = "maven"
-            info.test_command = "mvn test"
-            info.build_command = "mvn package"
+            file_arg = f" -f {java_dir}/pom.xml" if java_dir else ""
+            info.test_command = f"mvn test{file_arg}"
+            info.build_command = f"mvn package{file_arg}"
             info.confidence = 0.8
-            evidence.append("Found pom.xml")
+            evidence.append(f"Found pom.xml in {java_dir or 'root'}")
             info.evidence = evidence
             return info
 
         # Check Java Gradle
-        if os.path.exists(
-            os.path.join(workspace_path, "build.gradle")
-        ) or os.path.exists(os.path.join(workspace_path, "build.gradle.kts")):
+        gradle_path, gradle_dir = find_manifest("build.gradle")
+        if not gradle_path:
+            gradle_path, gradle_dir = find_manifest("build.gradle.kts")
+            
+        if gradle_path:
             info.language = "JAVA"
             info.package_manager = "gradle"
-            info.test_command = (
-                "./gradlew test"
-                if os.path.exists(os.path.join(workspace_path, "gradlew"))
-                else "gradle test"
-            )
-            info.build_command = (
-                "./gradlew build"
-                if os.path.exists(os.path.join(workspace_path, "gradlew"))
-                else "gradle build"
-            )
+            dir_arg = f" -p {gradle_dir}" if gradle_dir else ""
+            
+            wrapper_path = os.path.join(workspace_path, gradle_dir or "", "gradlew")
+            if os.path.exists(wrapper_path):
+                cmd = f"{wrapper_path}"
+            else:
+                cmd = "gradle"
+                
+            info.test_command = f"{cmd}{dir_arg} test"
+            info.build_command = f"{cmd}{dir_arg} build"
             info.confidence = 0.8
-            evidence.append("Found build.gradle")
+            evidence.append(f"Found build.gradle in {gradle_dir or 'root'}")
             info.evidence = evidence
             return info
 
         # Check Go
-        if os.path.exists(os.path.join(workspace_path, "go.mod")):
+        go_path, go_dir = find_manifest("go.mod")
+        if go_path:
             info.language = "GO"
             info.package_manager = "go modules"
-            info.test_command = "go test ./..."
-            info.build_command = "go build ./..."
+            dir_arg = f" ./{go_dir}/..." if go_dir else " ./..."
+            info.test_command = f"go test{dir_arg}"
+            info.build_command = f"go build{dir_arg}"
             info.confidence = 0.8
-            evidence.append("Found go.mod")
+            evidence.append(f"Found go.mod in {go_dir or 'root'}")
             info.evidence = evidence
             return info
 
         # Check Rust
-        if os.path.exists(os.path.join(workspace_path, "Cargo.toml")):
+        cargo_path, rust_dir = find_manifest("Cargo.toml")
+        if cargo_path:
             info.language = "RUST"
             info.package_manager = "cargo"
-            info.test_command = "cargo test"
-            info.build_command = "cargo build"
+            manifest_arg = f" --manifest-path {rust_dir}/Cargo.toml" if rust_dir else ""
+            info.test_command = f"cargo test{manifest_arg}"
+            info.build_command = f"cargo build{manifest_arg}"
             info.confidence = 0.8
-            evidence.append("Found Cargo.toml")
+            evidence.append(f"Found Cargo.toml in {rust_dir or 'root'}")
             info.evidence = evidence
             return info
+
+        # Check standalone HTML / Web app files
+        try:
+            workspace_files = [f for f in os.listdir(workspace_path) if os.path.isfile(os.path.join(workspace_path, f))]
+            html_files = [f for f in workspace_files if f.endswith((".html", ".htm"))]
+            if html_files:
+                info.language = "HTML"
+                info.confidence = 0.7
+                evidence.append(f"Found HTML application files: {', '.join(html_files)}")
+                info.evidence = evidence
+                return info
+        except Exception:
+            pass
 
         info.evidence = evidence
         return info

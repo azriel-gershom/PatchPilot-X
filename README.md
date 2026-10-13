@@ -92,11 +92,17 @@ Copy the example environment file and add your actual API key:
 cp backend/.env.example backend/.env
 ```
 Ensure `GEMINI_API_KEY` is set inside `backend/.env`.
+### Quick Start (One Command)
+Run both backend, frontend, and launch the web app with a single command:
+```bash
+./start.sh
+```
 
-### Run Backend
+### Manual Setup
+
 ```bash
 cd backend
-pip install -r requirements.txt
+pip install -e .
 python -m uvicorn app.main:app --reload
 ```
 

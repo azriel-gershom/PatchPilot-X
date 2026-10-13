@@ -54,6 +54,16 @@ class CoderAgent:
 
         new_content = response.new_content
 
+        # Strip accidental markdown fences if whole content is wrapped
+        if new_content.strip().startswith("```"):
+            lines_out = new_content.strip().splitlines()
+            new_content = "\n".join(
+                l for l in lines_out
+                if not l.strip().startswith("```")
+            )
+            if response.new_content.endswith("\n"):
+                new_content += "\n"
+
         if file_path.endswith(".py"):
             try:
                 ast.parse(new_content)
